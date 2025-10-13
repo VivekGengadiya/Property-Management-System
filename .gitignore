@@ -1,0 +1,4 @@
+# Ignore node_modules and environment files
+pms_backend/node_modules/
+pms_frontend/node_modules/
+
