@@ -7,17 +7,53 @@ export const registerUser = async (req, res) => {
     try {
         const { name, email, phone, password, role } = req.body;
 
-        // Check if user already exists
+        // Required fields
+        if (!name || !email || !password || !role) {
+            return res.status(400).json({
+                success: false,
+                message: "Name, Email, Password, and Role are required"
+            });
+        }
+
+        // Email format validation
+        const allowedEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!allowedEmailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid email format"
+            });
+        }
+
+        // Password security validation
+        if (password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 6 characters long"
+            });
+        }
+
+        // Allowed role validation
+        const allowedRoles = ["LANDLORD", "TENANT", "ADMIN"];
+        if (!allowedRoles.includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid role. Allowed roles: ${allowedRoles.join(", ")}`
+            });
+        }
+
+        // Prevent duplicate email
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ success: false, message: "Email already registered" });
+            return res.status(400).json({
+                success: false,
+                message: "This email is already registered"
+            });
         }
 
         // Hash password
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
 
-        // Create user
         const user = await User.create({
             name,
             email,
@@ -26,20 +62,26 @@ export const registerUser = async (req, res) => {
             passwordHash
         });
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message: "User registered successfully",
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                phone: user.phone,
                 role: user.role
             }
         });
+
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 };
+
 
 // Login user
 export const loginUser = async (req, res) => {

@@ -1,9 +1,35 @@
 import { Router } from "express";
-import { createLease, getLeases } from "../controllers/leaseController.js";
+import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
+import { upload } from "../middleware/uploadMiddleware.js";
+import {
+    createLease,
+    getMyLeases,
+    getLandlordLeases,
+    respondToLease,
+    terminateLease,
+} from "../controllers/leaseController.js";
 
 const router = Router();
 
-router.post("/", createLease);
-router.get("/", getLeases);
+// LANDLORD: Create lease after approving application
+router.post(
+    "/",
+    protect,
+    authorizeRoles("LANDLORD"),
+    upload.fields([{ name: "docs", maxCount: 5 }]),
+    createLease
+);
+
+// TENANT: View my leases
+router.get("/my", protect, authorizeRoles("TENANT"), getMyLeases);
+
+// LANDLORD: View all leases
+router.get("/landlord", protect, authorizeRoles("LANDLORD"), getLandlordLeases);
+
+// TENANT: Accept or reject lease
+router.put("/:id/respond", protect, authorizeRoles("TENANT"), respondToLease);
+
+// LANDLORD: Terminate lease
+router.put("/:id/terminate", protect, authorizeRoles("LANDLORD"), terminateLease);
 
 export default router;

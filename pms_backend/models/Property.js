@@ -7,6 +7,11 @@ const propertySchema = new mongoose.Schema({
         required: true
     },
     name: { type: String, required: true },
+    propertyType: {
+        type: String,
+        enum: ["HOUSE", "APARTMENT", "CONDO"],
+        required: true
+    },
     address: {
         line1: String,
         line2: String,
@@ -17,6 +22,7 @@ const propertySchema = new mongoose.Schema({
     },
     amenities: [String], // Example: ["Parking", "Gym"]
     notes: String,
+    image: String, // ✅ added to store image URL
     isArchived: { type: Boolean, default: false }
 }, { timestamps: true });
 

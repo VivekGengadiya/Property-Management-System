@@ -23,7 +23,7 @@ const leaseSchema = new mongoose.Schema({
     depositAmount: Number,
     status: {
         type: String,
-        enum: ["ACTIVE", "PENDING", "TERMINATED", "EXPIRED"],
+        enum: ["ACTIVE", "PENDING", "TERMINATED", "EXPIRED", "REJECTED"],
         default: "PENDING"
     },
     documents: [{ name: String, url: String }],
