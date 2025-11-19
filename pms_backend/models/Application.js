@@ -1,27 +1,33 @@
 import mongoose from "mongoose";
 
 const applicationSchema = new mongoose.Schema({
+    tenantId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
     unitId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Unit",
         required: true
     },
-    applicantId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-    },
     status: {
         type: String,
-        enum: ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED", "WITHDRAWN"],
-        default: "SUBMITTED"
+        enum: ["PENDING", "APPROVED", "REJECTED"],
+        default: "PENDING"
     },
-    docs: [{ type: { type: String }, url: String }],
-    notes: String
+    note: String,
+
+    docs: [
+        {
+            url: { type: String, required: true },
+            type: { type: String, default: "OTHER" }
+        }
+    ]
 }, { timestamps: true });
 
 applicationSchema.index({ unitId: 1 });
-applicationSchema.index({ applicantId: 1 });
+applicationSchema.index({ tenantId: 1 });
 applicationSchema.index({ status: 1 });
 
 export default mongoose.model("Application", applicationSchema);
