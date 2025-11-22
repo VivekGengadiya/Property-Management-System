@@ -14,10 +14,12 @@ const paymentSchema = new mongoose.Schema({
     amount: { type: Number, required: true, min: 0 },
     method: {
         type: String,
-        enum: ["STRIPE", "MANUAL_CASH", "MANUAL_ETRANSFER"],
+        enum: ["STRIPE", "MANUAL_CASH", "MANUAL_ETRANSFER", "PAYPAL"],
         required: true
     },
     stripePaymentIntentId: String,
+    paypalOrderId: String,
+    paypalPayerId: String,
     status: {
         type: String,
         enum: ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"],
@@ -29,5 +31,6 @@ const paymentSchema = new mongoose.Schema({
 paymentSchema.index({ invoiceId: 1 });
 paymentSchema.index({ payerId: 1 });
 paymentSchema.index({ status: 1 });
+paymentSchema.index({ paypalOrderId: 1 });
 
 export default mongoose.model("Payment", paymentSchema);

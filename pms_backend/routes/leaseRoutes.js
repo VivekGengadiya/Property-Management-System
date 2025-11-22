@@ -32,4 +32,21 @@ router.put("/:id/respond", protect, authorizeRoles("TENANT"), respondToLease);
 // LANDLORD: Terminate lease
 router.put("/:id/terminate", protect, authorizeRoles("LANDLORD"), terminateLease);
 
+// GET /api/payments/latest/:invoiceId
+router.get("/latest/:invoiceId", async (req, res) => {
+    try {
+        const { invoiceId } = req.params;
+
+        const payment = await Payment.findOne({ invoiceId })
+            .sort({ createdAt: -1 }) // latest payment
+            .lean();
+
+        res.json({ success: true, payment });
+    } catch (error) {
+        console.error("Error fetching latest payment", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+
 export default router;

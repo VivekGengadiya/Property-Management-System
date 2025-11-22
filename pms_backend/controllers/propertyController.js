@@ -70,6 +70,61 @@ export const createProperty = async (req, res) => {
 };
 
 /* -------------------------------------------------
+   📊 OWNER DASHBOARD STATS — NO NEW CONTROLLER NEEDED
+--------------------------------------------------- */
+export const getOwnerStats = async (req, res) => {
+  try {
+    const ownerId = req.params.ownerId;
+
+    if (!ownerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Owner ID missing",
+      });
+    }
+
+    // 1️⃣ Count properties
+    const totalProperties = await Property.countDocuments({
+      landlordId: ownerId,
+      isArchived: false
+    });
+
+    // 2️⃣ Find property IDs for this owner
+    const props = await Property.find({
+      landlordId: ownerId,
+      isArchived: false
+    }).select("_id");
+
+    const propertyIds = props.map((p) => p._id);
+
+    // 3️⃣ Count units inside those properties
+    const available = await Unit.countDocuments({
+      propertyId: { $in: propertyIds },
+      status: "AVAILABLE",
+      isArchived: false
+    });
+
+    const occupied = await Unit.countDocuments({
+      propertyId: { $in: propertyIds },
+      status: "OCCUPIED",
+      isArchived: false
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        totalProperties,
+        available,
+        occupied
+      }
+    });
+  } catch (error) {
+    console.error("getOwnerStats error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/* -------------------------------------------------
    🏘 GET ALL PROPERTIES
 --------------------------------------------------- */
 export const getProperties = async (req, res) => {
