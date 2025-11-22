@@ -4,14 +4,14 @@ import Lease from "../models/Lease.js";
 import mongoose from "mongoose";
 
 /* ======================================================
-   💳 TENANT: Create Payment (manual or Stripe)
+   💳 TENANT: Create Payment (manual, Stripe, or PayPal)
 ====================================================== */
 export const createPayment = async (req, res) => {
     try {
         const payerId = req.user.id;
-        const { invoiceId, method, stripePaymentIntentId } = req.body;
+        const { invoiceId, method, stripePaymentIntentId, paypalOrderId, paypalPayerId } = req.body;
 
-        //  Basic validation
+        // Basic validation
         if (!invoiceId || !method) {
             return res.status(400).json({
                 success: false,
@@ -19,7 +19,7 @@ export const createPayment = async (req, res) => {
             });
         }
 
-        //  Check if invoice exists
+        // Check if invoice exists
         const invoice = await Invoice.findById(invoiceId)
             .populate({
                 path: "leaseId",
@@ -30,30 +30,45 @@ export const createPayment = async (req, res) => {
         if (!invoice)
             return res.status(404).json({ success: false, message: "Invoice not found" });
 
-        //  Check that payer is the tenant for that invoice
+        // Check that payer is the tenant for that invoice
         if (invoice.tenantId._id.toString() !== payerId.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized to pay this invoice" });
         }
 
-        //  Check if already paid
+        // Check if already paid
         if (invoice.status === "PAID") {
             return res.status(400).json({ success: false, message: "This invoice is already paid" });
         }
 
-        //  Calculate payment amount
+        // Calculate payment amount
         const amount = invoice.amountDue;
-        //  Create Payment record
+        
+        // Determine payment status based on method
+        let status = "PENDING";
+        let paidAt = null;
+        
+        if (method === "MANUAL_CASH" || method === "MANUAL_ETRANSFER") {
+            status = "SUCCEEDED";
+            paidAt = new Date();
+        } else if (method === "PAYPAL") {
+            status = "SUCCEEDED";
+            paidAt = new Date();
+        }
+
+        // Create Payment record
         const payment = await Payment.create({
             invoiceId,
             payerId,
             amount,
             method,
             stripePaymentIntentId,
-            status: method === "MANUAL_CASH" || method === "MANUAL_ETRANSFER" ? "SUCCEEDED" : "PENDING",
-            paidAt: method !== "STRIPE" ? new Date() : null,
+            paypalOrderId,
+            paypalPayerId,
+            status,
+            paidAt,
         });
 
-        //  Auto-update invoice if manual payment succeeds
+        // Auto-update invoice if payment succeeds
         if (payment.status === "SUCCEEDED") {
             invoice.status = "PAID";
             invoice.paidAt = new Date();
@@ -67,6 +82,87 @@ export const createPayment = async (req, res) => {
         });
     } catch (error) {
         console.error("createPayment error:", error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/* ======================================================
+   PAYPAL: Create PayPal Payment (Direct PayPal Route)
+====================================================== */
+export const createPayPalPayment = async (req, res) => {
+    try {
+        const payerId = req.user.id;
+        const { leaseId, amount, paypalOrderId, paypalPayerId } = req.body;
+
+        // Basic validation
+        if (!leaseId || !amount || !paypalOrderId) {
+            return res.status(400).json({
+                success: false,
+                message: "leaseId, amount, and paypalOrderId are required",
+            });
+        }
+
+        // Find the lease
+        const lease = await Lease.findById(leaseId);
+        if (!lease) {
+            return res.status(404).json({ success: false, message: "Lease not found" });
+        }
+
+        // Check if user is the tenant for this lease
+        if (lease.tenantId.toString() !== payerId.toString()) {
+            return res.status(403).json({ success: false, message: "Not authorized to pay for this lease" });
+        }
+
+        // Find or create an invoice for this lease
+        let invoice = await Invoice.findOne({ 
+            leaseId, 
+            status: { $ne: "PAID" } 
+        });
+
+        if (!invoice) {
+            // Create a new invoice if none exists
+            invoice = await Invoice.create({
+                leaseId,
+                tenantId: payerId,
+                landlordId: lease.landlordId,
+                amountDue: amount,
+                dueDate: new Date(),
+                status: "PAID",
+                paidAt: new Date(),
+                description: "First month rent and security deposit"
+            });
+        } else {
+            // Check if invoice is already paid
+            if (invoice.status === "PAID") {
+                return res.status(400).json({ success: false, message: "This invoice is already paid" });
+            }
+            
+            // Update invoice amount and mark as paid
+            invoice.amountDue = amount;
+            invoice.status = "PAID";
+            invoice.paidAt = new Date();
+            await invoice.save();
+        }
+
+        // Create Payment record
+        const payment = await Payment.create({
+            invoiceId: invoice._id,
+            payerId,
+            amount,
+            method: "PAYPAL",
+            paypalOrderId,
+            paypalPayerId,
+            status: "SUCCEEDED",
+            paidAt: new Date(),
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "PayPal payment recorded successfully",
+            data: payment,
+        });
+    } catch (error) {
+        console.error("createPayPalPayment error:", error);
         return res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -87,7 +183,7 @@ export const handleStripeWebhook = async (req, res) => {
                 payment.paidAt = new Date();
                 await payment.save();
 
-                //  Update invoice as paid
+                // Update invoice as paid
                 const invoice = await Invoice.findById(payment.invoiceId);
                 if (invoice) {
                     invoice.status = "PAID";
@@ -112,7 +208,18 @@ export const getMyPayments = async (req, res) => {
         const payments = await Payment.find({ payerId: req.user.id })
             .populate({
                 path: "invoiceId",
-                populate: { path: "leaseId", select: "unitId startDate endDate" },
+                populate: { 
+                    path: "leaseId", 
+                    select: "unitId startDate endDate",
+                    populate: {
+                        path: "unitId",
+                        select: "unitNumber propertyId",
+                        populate: {
+                            path: "propertyId",
+                            select: "name address"
+                        }
+                    }
+                },
             })
             .sort({ createdAt: -1 });
 
@@ -135,7 +242,17 @@ export const getLandlordPayments = async (req, res) => {
 
         const payments = await Payment.find({ invoiceId: { $in: invoiceIds } })
             .populate("payerId", "name email")
-            .populate("invoiceId", "amountDue status dueDate")
+            .populate({
+                path: "invoiceId",
+                populate: {
+                    path: "leaseId",
+                    select: "unitId",
+                    populate: {
+                        path: "unitId",
+                        select: "unitNumber"
+                    }
+                }
+            })
             .sort({ createdAt: -1 });
 
         res.json({ success: true, data: payments });

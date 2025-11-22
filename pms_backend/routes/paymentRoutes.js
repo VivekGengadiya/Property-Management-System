@@ -2,6 +2,7 @@ import { Router } from "express";
 import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
 import {
     createPayment,
+    createPayPalPayment,
     getMyPayments,
     getLandlordPayments,
     getPaymentById,
@@ -10,8 +11,11 @@ import {
 
 const router = Router();
 
-// 💳 Tenant creates payment
+// 💳 Tenant creates payment (supports multiple methods)
 router.post("/", protect, authorizeRoles("TENANT"), createPayment);
+
+// 💰 Tenant creates PayPal payment
+router.post("/paypal", protect, authorizeRoles("TENANT"), createPayPalPayment);
 
 // 👤 Tenant views all payments
 router.get("/my", protect, authorizeRoles("TENANT"), getMyPayments);
@@ -22,7 +26,5 @@ router.get("/landlord", protect, authorizeRoles("LANDLORD"), getLandlordPayments
 // 🔍 Get single payment
 router.get("/:id", protect, getPaymentById);
 
-// 💳 Stripe webhook endpoint
-router.post("/webhook/stripe", handleStripeWebhook);
 
 export default router;

@@ -180,7 +180,7 @@ const Home = () => {
       <section className="features-section">
         <div className="premium-container">
           <div className="section-header">
-            <h2 className="section-title">Why Choose RentEase</h2>
+            <h2 className="section-title">Why Choose Vasudha</h2>
             <p className="section-subtitle">Experience the best in property rental with our premium features</p>
           </div>
           <div className="features-grid">
@@ -365,7 +365,7 @@ const Home = () => {
             </h2>
             <p className="cta-subtitle">
               {!user 
-                ? 'Join thousands of satisfied users who found their dream rental through RentEase'
+                ? 'Join thousands of satisfied users who found their dream rental through Vasudha'
                 : 'Continue managing your properties and rental experience'
               }
             </p>

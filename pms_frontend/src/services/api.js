@@ -144,15 +144,27 @@ export const applicationAPI = {
 };
 
 export const leaseAPI = {
-  getLeases: () => apiCall('/leases'),
-  getLease: (id) => apiCall(`/leases/${id}`),
-  createLease: (leaseData) => apiCall('/leases', {
+  // LANDLORD: list leases for my properties
+  listForLandlord: () => apiCall('/leases/landlord'),
+
+  // TENANT: list my leases
+  listForTenant: () => apiCall('/leases/my'),
+
+  // LANDLORD: create lease after approving application
+  create: (data) => apiCall('/leases', {
     method: 'POST',
-    body: leaseData,
+    body: data, // will include applicationId, dates + extra professional fields
   }),
-  updateLease: (id, leaseData) => apiCall(`/leases/${id}`, {
+
+  // TENANT: respond to lease
+  respond: (id, data) => apiCall(`/leases/${id}/respond`, {
     method: 'PUT',
-    body: leaseData,
+    body: data,
+  }),
+
+  // LANDLORD: terminate lease
+  terminate: (id) => apiCall(`/leases/${id}/terminate`, {
+    method: 'PUT',
   }),
 };
 

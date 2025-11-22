@@ -65,15 +65,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const fetchLeases = async () => {
-    try {
-      const response = await leaseAPI.getLeases();
-      setLeaseAgreements(response.data || []);
-    } catch (error) {
-      console.error('Error fetching leases:', error);
-      setLeaseAgreements([]);
+ const fetchLeases = async () => {
+  try {
+    let response;
+
+    if (user.role === "LANDLORD") {
+      response = await leaseAPI.listForLandlord();
+    } else if (user.role === "TENANT") {
+      response = await leaseAPI.listForTenant();
+    } else {
+      response = { data: [] };
     }
-  };
+
+    setLeaseAgreements(response.data || []);
+  } catch (error) {
+    console.error('Error fetching leases:', error);
+    setLeaseAgreements([]);
+  }
+};
+
 
   const login = async (email, password) => {
     setLoading(true);
@@ -305,7 +315,7 @@ const updateUnit = async (unitId, unitData) => {
 
   const createLeaseAgreement = async (leaseData) => {
     try {
-      const response = await leaseAPI.createLease(leaseData);
+      const response = await leaseAPI.create(leaseData);
       
       if (response.success) {
         setLeaseAgreements((prev) => [...prev, response.data]);

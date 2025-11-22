@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import Header from '../../components/common/Header.jsx';
+import Navbar from '../../components/common/Navbar.jsx';
 import Footer from '../../components/common/Footer.jsx';
 
 const PropertyDetail = () => {
@@ -74,7 +74,7 @@ const PropertyDetail = () => {
   if (loading) {
     return (
       <div className="dashboard-container" style={{background: 'var(--bg-primary)', minHeight: '100vh'}}>
-        <Header />
+        <Navbar />
         <div className="premium-container">
           <div className="loading-spinner" style={{textAlign: 'center', padding: '4rem'}}>
             <div className="loading-spinner-premium" style={{
@@ -97,7 +97,7 @@ const PropertyDetail = () => {
   if (!property) {
     return (
       <div className="dashboard-container" style={{background: 'var(--bg-primary)', minHeight: '100vh'}}>
-        <Header />
+        <Navbar />
         <div className="premium-container">
           <div className="empty-state" style={{
             textAlign: 'center',
@@ -150,7 +150,7 @@ const PropertyDetail = () => {
 
   return (
     <div className="dashboard-container" style={{background: 'var(--bg-primary)', minHeight: '100vh'}}>
-      <Header />
+      <Navbar />
       <div className="premium-container" style={{maxWidth: '1200px', margin: '0 auto', padding: '0 1rem'}}>
         {/* Property Header */}
         <div className="property-detail-header" style={{

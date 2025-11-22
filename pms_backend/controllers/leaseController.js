@@ -8,7 +8,31 @@ Create lease after approving application
 --------------------------------------------------- */
 export const createLease = async (req, res) => {
     try {
-        const { applicationId, startDate, endDate, dueDay } = req.body;
+        const {
+  applicationId,
+  startDate,
+  endDate,
+  dueDay,
+
+  leaseTitle,
+  leaseType,
+  rentFrequency,
+  paymentMethod,
+  lateFeeType,
+  lateFeeValue,
+  discountNotes,
+
+  petsAllowed,
+  smokingAllowed,
+  parkingIncluded,
+  utilitiesIncluded,
+  furnished,
+
+  emergencyContactName,
+  emergencyContactPhone,
+  additionalTerms,
+} = req.body;
+
         const landlordId = req.user.id;
 
         if (!applicationId || !startDate || !endDate) {
@@ -61,18 +85,44 @@ export const createLease = async (req, res) => {
 
         // Create lease
         const lease = await Lease.create({
-            unitId: unit._id,
-            propertyId: application.unitId.propertyId._id,
-            landlordId,
-            tenantId: application.tenantId._id,
-            startDate,
-            endDate,
-            rentAmount,
-            depositAmount,
-            dueDay: dueDay || 1,
-            documents,
-            status: "PENDING",
-        });
+  unitId: unit._id,
+  propertyId: application.unitId.propertyId._id,
+  landlordId,
+  tenantId: application.tenantId._id,
+
+  // BASIC
+  leaseTitle,
+  leaseType,
+  startDate,
+  endDate,
+
+  // MONEY
+  rentAmount,
+  rentFrequency: rentFrequency || "MONTHLY",
+  dueDay: dueDay || 1,
+  depositAmount,
+
+  // PAYMENT & LATE FEE
+  paymentMethod: paymentMethod || "E_TRANSFER",
+  lateFeeType: lateFeeType || "NONE",
+  lateFeeValue: lateFeeValue || 0,
+  discountNotes,
+
+  // RULES
+  petsAllowed,
+  smokingAllowed,
+  parkingIncluded,
+  utilitiesIncluded,
+  furnished,
+
+  // EXTRA
+  emergencyContactName,
+  emergencyContactPhone,
+  additionalTerms,
+
+  documents,
+  status: "PENDING",
+});
 
         //  Update application status
         application.status = "APPROVED";

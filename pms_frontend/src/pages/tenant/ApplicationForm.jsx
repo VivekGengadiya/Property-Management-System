@@ -32,39 +32,53 @@ const ApplicationForm = () => {
     }
     fetchPropertyAndUnitDetails();
   }, [unitId]);
+  
 
-  const fetchPropertyAndUnitDetails = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      };
+const fetchPropertyAndUnitDetails = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
 
-      // Fetch unit details
-      if (unitId) {
-        const unitResponse = await fetch(`http://localhost:9000/api/units/${unitId}`, { headers });
-        if (unitResponse.ok) {
-          const unitData = await unitResponse.json();
-          if (unitData.success) {
-            setUnit(unitData.data);
-            // Fetch property details
-            if (unitData.data.propertyId) {
-              const propertyResponse = await fetch(`http://localhost:9000/api/properties/${unitData.data.propertyId}`, { headers });
-              if (propertyResponse.ok) {
-                const propertyData = await propertyResponse.json();
-                if (propertyData.success) {
-                  setProperty(propertyData.data);
-                }
+    // Fetch unit details
+    if (unitId) {
+      const unitResponse = await fetch(`http://localhost:9000/api/units/${unitId}`, { headers });
+
+      if (unitResponse.ok) {
+        const unitData = await unitResponse.json();
+
+        if (unitData.success) {
+          setUnit(unitData.data);
+
+          // --- FIX: Ensure correct propertyId extraction ---
+          const propertyRef = unitData.data.propertyId;
+
+          const propertyIdValue = typeof propertyRef === "string"
+            ? propertyRef
+            : propertyRef?._id;  // If populated object → take _id
+
+          if (propertyIdValue) {
+            const propertyResponse = await fetch(
+              `http://localhost:9000/api/properties/${propertyIdValue}`,
+              { headers }
+            );
+
+            if (propertyResponse.ok) {
+              const propertyData = await propertyResponse.json();
+              if (propertyData.success) {
+                setProperty(propertyData.data);
               }
             }
           }
         }
       }
-    } catch (err) {
-      console.error('Error fetching details:', err);
     }
-  };
+  } catch (err) {
+    console.error('Error fetching details:', err);
+  }
+};
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -499,7 +513,11 @@ const ApplicationForm = () => {
               border: '1px solid rgba(90, 122, 110, 0.1)'
             }}>
               <strong style={{color: 'var(--text-primary)'}}>Property:</strong> 
-              <span style={{color: 'var(--text-secondary)'}}>{property?.name || propertyName || 'Loading...'}</span>
+              <span style={{color: 'var(--text-secondary)'}}> {property?.name 
+    ? property.name 
+    : propertyName 
+      ? propertyName 
+      : 'Loading...'}</span>
             </div>
             <div className="summary-item" style={{
               display: 'flex',
@@ -1129,7 +1147,11 @@ const ApplicationForm = () => {
                     borderRadius: '8px'
                   }}>
                     <strong style={{color: 'var(--text-primary)'}}>Property:</strong> 
-                    <span style={{color: 'var(--text-secondary)'}}>{property?.name || propertyName || 'N/A'}</span>
+                    <span style={{color: 'var(--text-secondary)'}}> {property?.name 
+    ? property.name 
+    : propertyName 
+      ? propertyName 
+      : 'Loading...'}</span>
                   </div>
                   <div className="review-item">
                     <strong style={{color: 'var(--text-primary)', display: 'block', marginBottom: '0.5rem'}}>Additional Notes:</strong>
