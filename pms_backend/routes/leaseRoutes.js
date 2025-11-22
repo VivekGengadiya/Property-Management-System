@@ -7,6 +7,7 @@ import {
     getLandlordLeases,
     respondToLease,
     terminateLease,
+    generateLeasePdf,
 } from "../controllers/leaseController.js";
 
 const router = Router();
@@ -47,6 +48,14 @@ router.get("/latest/:invoiceId", async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
+
+// Generate Lease PDF (Tenant or Landlord)
+router.get(
+  "/:id/pdf",
+  protect,               // you already use this
+  // optionally: authorizeRoles("TENANT", "LANDLORD"),
+  generateLeasePdf
+);
 
 
 export default router;

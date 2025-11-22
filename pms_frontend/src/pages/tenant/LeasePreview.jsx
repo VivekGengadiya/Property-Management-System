@@ -13,6 +13,10 @@ const TenantLeasePreview = () => {
   const [unitDetails, setUnitDetails] = useState(null);
   const [propertyDetails, setPropertyDetails] = useState(null);
   const [error, setError] = useState('');
+  const [invoiceData, setInvoiceData] = useState(null);
+const [payments, setPayments] = useState([]);
+const [paymentDone, setPaymentDone] = useState(false);
+
 
   // Fetch lease data from backend
   const fetchLeaseData = async () => {
@@ -46,6 +50,8 @@ const TenantLeasePreview = () => {
         if (result.success && result.data) {
           setLeaseData(result.data);
           await fetchUnitAndPropertyDetails(result.data.unitId);
+          await fetchInvoiceForLease(result.data._id);
+
         } else {
           throw new Error(result.message || "Failed to load lease data");
         }
@@ -85,6 +91,8 @@ const TenantLeasePreview = () => {
             console.log("Found lease:", targetLease);
             setLeaseData(targetLease);
             await fetchUnitAndPropertyDetails(targetLease.unitId);
+            await fetchInvoiceForLease(targetLease._id);
+
           } else {
             throw new Error("No lease found for your account");
           }
@@ -265,16 +273,99 @@ const TenantLeasePreview = () => {
     }
   };
 
+  const fetchInvoiceForLease = async (leaseId) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`http://localhost:9000/api/invoices/lease/${leaseId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+      setInvoiceData(result.data.invoice);
+      setPayments(result.data.payments);
+
+      if (result.data.payments && result.data.payments.length > 0) {
+        setPaymentDone(true);
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching invoice:", error);
+  }
+};
+
   // Handle PDF download
   const handleDownloadLease = async () => {
     try {
-      alert("PDF download feature coming soon");
-      console.log("Downloading lease PDF for:", leaseData?._id);
-    } catch (error) {
-      console.error("Error downloading lease:", error);
-      alert("Failed to download lease");
+    if (!leaseData?._id) return;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login again to download the lease");
+      navigate("/login");
+      return;
     }
+
+    const res = await fetch(
+      `http://localhost:9000/api/leases/${leaseData._id}/pdf`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error("Failed to download lease PDF");
+    }
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lease_${leaseData._id.slice(-8).toUpperCase()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error downloading lease:", error);
+    alert(error.message || "Failed to download lease PDF");
+  }
   };
+  
+const downloadInvoice = async (invoiceId) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `http://localhost:9000/api/invoices/${invoiceId}/pdf`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to download invoice PDF");
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `invoice_${invoiceId.slice(-8)}.pdf`;
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    alert("PDF download failed");
+  }
+};
 
   // Format currency
   const formatCurrency = (amount) => {
@@ -612,7 +703,7 @@ const TenantLeasePreview = () => {
           )}
           
           {/* PAYMENT BUTTON - Show for active leases */}
-          {isActive && (
+          {isActive && !paymentDone && (
             <button 
               onClick={handleMakePayment}
               style={{
@@ -641,9 +732,9 @@ const TenantLeasePreview = () => {
               💳 Make Payment
             </button>
           )}
-          
+          { paymentDone && (
           <button 
-            onClick={handleDownloadLease}
+          onClick={handleDownloadLease}
             style={{
               padding: '1rem 2rem',
               background: 'rgba(102, 126, 234, 0.1)',
@@ -666,9 +757,30 @@ const TenantLeasePreview = () => {
               e.target.style.borderColor = 'rgba(102, 126, 234, 0.3)';
             }}
           >
-            📥 Download PDF
+            📥 Download Lease PDF
           </button>
+)}
+          {/* DOWNLOAD INVOICE ONLY IF EXISTS */}
+{invoiceData && (
+  <button
+    onClick={() => downloadInvoice(invoiceData._id)}
+    style={{
+      padding: '1rem 2rem',
+      background: 'rgba(59, 130, 246, 0.1)',
+      color: 'var(--text-primary)',
+      border: '1px solid rgba(59, 130, 246, 0.3)',
+      borderRadius: '12px',
+      fontWeight: '600',
+      cursor: 'pointer'
+    }}
+  >
+    🧾 View Invoice
+  </button>
+)}
+
         </div>
+
+        
 
         {/* Main Lease Card */}
         <div style={{
