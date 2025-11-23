@@ -1,0 +1,3 @@
+Vasudha is a full-featured Property Management System designed for landlords, tenants, and property owners. It simplifies property listings, tenant management, lease agreements, rent payments, maintenance requests, invoice generation, and dashboard analytics. The platform provides role-based access, secure authentication, automated workflows, and a modern user interface built using MERN Stack technologies. The goal of Vasudha is to make property operations seamless, digital, and efficient.
+
+<img width="1024" height="1024" alt="Gemini_Generated_Image_867su5867su5867s" src="https://github.com/user-attachments/assets/fd66418b-c419-4f98-8f98-a6df20c43fed" />
