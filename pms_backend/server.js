@@ -20,8 +20,25 @@ const app = express();
 // ✅ Middleware to parse incoming requests
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:5173",
-    credentials: true}));
+
+const allowedOrigins = [
+  'http://localhost:5173',        // dev
+  'https://www.vasudha.ca',       // production
+  'https://vasudha.ca'            // optional: root domain
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // allow requests with no origin (like curl/postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'CORS policy: This origin is not allowed.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true // if you use cookies/auth headers
+}));
 
 // ✅ [Optional Legacy] Serve static uploads (for old local files, not Cloudinary)
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
