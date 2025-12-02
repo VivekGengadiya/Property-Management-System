@@ -24,7 +24,7 @@ app.use(express.json());
 const allowedOrigins = [
   'http://localhost:5173',        // dev
   'https://www.vasudha.ca',       // production
-  'https://vasudha.ca'            // optional: root domain
+  'https://vasudha.ca'            
 ];
 
 app.use(cors({
