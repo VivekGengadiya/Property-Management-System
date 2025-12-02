@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 
 // Generic API call function with auth
@@ -219,3 +219,4 @@ export const uploadAPI = {
 // Health check
 
 export const healthCheck = () => apiCall('/health');
+
