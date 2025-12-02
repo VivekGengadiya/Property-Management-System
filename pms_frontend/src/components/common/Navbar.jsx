@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 const Navbar = () => {
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -14,18 +15,13 @@ const Navbar = () => {
   const getDashboardLink = () => {
     if (!user) return '/';
     switch (user.role) {
-      case 'LANDLORD':
-        return '/owner/dashboard';
-      case 'TENANT':
-        return '/tenant/dashboard';
-      case 'MAINTENANCE':
-        return '/maintenance/dashboard';
-      default:
-        return '/';
+      case 'LANDLORD': return '/owner/dashboard';
+      case 'TENANT': return '/tenant/dashboard';
+      case 'MAINTENANCE': return '/maintenance/dashboard';
+      default: return '/';
     }
   };
 
-  // Define role-based menu items
   const roleLinks = {
     LANDLORD: [
       { to: '/', label: 'Home' },
@@ -53,59 +49,74 @@ const Navbar = () => {
     ],
   };
 
-  if (loading) {
-    return (
-      <header className="common-navbar">
-        <div className="navbar-container">
-          <div className="navbar-content">
-            <Link to="/" className="navbar-logo">
-              Vasudha
-            </Link>
-            <span className="nav-loading">Loading...</span>
-          </div>
+  if (loading) return (
+    <header className="common-navbar">
+      <div className="navbar-container">
+        <div className="navbar-content">
+          <Link to="/" className="navbar-logo">Vasudha</Link>
+          <span className="nav-loading">Loading...</span>
         </div>
-      </header>
-    );
-  }
+      </div>
+    </header>
+  );
 
   return (
     <header className="common-navbar">
       <div className="navbar-container">
-        <div className="navbar-content">
-          {/* Logo */}
-          <Link to="/" className="navbar-logo">
-            Vasudha
-          </Link>
 
-          {/* Show nav links based on role */}
-          {user && (
-            <nav className="navbar-links">
-              {(roleLinks[user.role] || []).map((link) => (
-                <Link key={link.to} to={link.to} className="nav-item">
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          )}
+        <div className="navbar-content">
+
+          {/* Logo */}
+          <Link to="/" className="navbar-logo">Vasudha</Link>
+
+          {/* Hamburger Icon (Mobile Only) */}
+          <button
+            className={`hamburger ${isOpen ? 'active' : ''}`}
+            onClick={() => setIsOpen(!isOpen)} value='hamburger'
+             aria-label={isOpen ? "Close menu" : "Open menu"}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          {/* Navigation Links */}
+          <nav className={`navbar-links ${isOpen ? 'open' : ''}`}>
+            {user && (roleLinks[user.role] || []).map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="nav-item"
+                onClick={() => setIsOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
           {/* Auth Buttons */}
-          <div className="navbar-auth">
+          <div className={`navbar-auth ${isOpen ? 'open' : ''}`}>
             {user ? (
               <div className="nav-user">
                 <span className="welcome-text">
                   Welcome, <strong>{user.name}</strong>
                 </span>
-                <button onClick={handleLogout} className="btn-logout">
+                <button onClick={() => { setIsOpen(false); handleLogout(); }} className="btn-logout">
                   Logout
                 </button>
               </div>
             ) : (
               <div className="nav-guest">
-                <Link to="/login" className="btn-login">Login</Link>
-                <Link to="/signup" className="btn-signup">Sign Up</Link>
+                <Link to="/login" className="btn-login" onClick={() => setIsOpen(false)}>
+                  Login
+                </Link>
+                <Link to="/signup" className="btn-signup" onClick={() => setIsOpen(false)}>
+                  Sign Up
+                </Link>
               </div>
             )}
           </div>
+
         </div>
       </div>
     </header>
