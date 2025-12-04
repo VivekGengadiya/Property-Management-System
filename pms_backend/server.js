@@ -17,51 +17,55 @@ import maintenanceRoutes from "./routes/maintenanceRoutes.js";
 dotenv.config();
 const app = express();
 
-// ✅ Middleware to parse incoming requests
+// Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Add your frontend URLs here
 const allowedOrigins = [
-  'http://localhost:5173',        // dev
-  'https://www.vasudha.ca',       // production
-  'https://vasudha.ca'            
+  "http://localhost:5173", // React dev
+  "http://127.0.0.1:5173", // sometimes needed
+  "https://frontend-property-management-system.onrender.com", // Render frontend
+  "https://vasudha.ca",
+  "https://www.vasudha.ca"
 ];
 
-app.use(cors({
-  origin: function(origin, callback) {
-    // allow requests with no origin (like curl/postman)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'CORS policy: This origin is not allowed.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true // if you use cookies/auth headers
-}));
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("CORS blocked: " + origin), false);
+    },
+    credentials: true,
+  })
+);
 
 
+
+// Static uploads folder
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-// ✅ MongoDB Connection
+// MongoDB connection
 mongoose
-    .connect(process.env.MONGO_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    .then(() => console.log("✅ MongoDB Atlas connected successfully"))
-    .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ MongoDB Atlas connected successfully"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// ✅ Health Check API
+// Health check
 app.get("/api/health", (req, res) => {
-    res.json({
-        success: true,
-        message: "PMS Backend Running with Cloudinary Integration!",
-        timestamp: new Date().toISOString(),
-    });
+  res.json({
+    success: true,
+    message: "Backend Running",
+    timestamp: new Date().toISOString(),
+  });
 });
 
-// ✅ Mount Routes
+// Routes
 app.use("/api/users", userRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/units", unitRoutes);
@@ -71,36 +75,31 @@ app.use("/api/invoices", invoiceRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
 
-// ✅ Handle 404 for undefined routes
+// 404 Handler
 app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: `Route not found: ${req.originalUrl}`,
-    });
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.originalUrl}`,
+  });
 });
-// ✅ Global Error Handler for Upload or Validation Errors
+
+// Global Error Handler
 app.use((err, req, res, next) => {
-    if (err) {
-        console.error("🔥 Upload/Error Middleware:", err.message);
+  console.error("🔥 Error Middleware:", err.message);
 
-        // Detect file type error (multer or cloudinary)
-        if (err.message.includes("Invalid file type")) {
-            return res.status(400).json({
-                success: false,
-                message: "Only JPG, PNG, PDF, DOC or DOCX files are allowed.",
-            });
-        }
+  if (err.message.includes("Invalid file type")) {
+    return res.status(400).json({
+      success: false,
+      message: "Only JPG, PNG, PDF, DOC or DOCX files are allowed.",
+    });
+  }
 
-        // Generic fallback
-        return res.status(500).json({
-            success: false,
-            message: err.message || "Server error occurred.",
-        });
-    }
-    next();
+  res.status(500).json({
+    success: false,
+    message: err.message || "Server error occurred.",
+  });
 });
 
-
-// ✅ Start Server
+// Start server
 const PORT = process.env.PORT || 9000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

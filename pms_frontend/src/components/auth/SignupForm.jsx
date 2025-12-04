@@ -400,8 +400,8 @@ const SignupForm = () => {
             }}>
               {[
                 { value: 'TENANT', icon: '🏠', title: 'Rent a Property', description: 'Find your perfect home' },
-                { value: 'LANDLORD', icon: '💰', title: 'List my Property', description: 'Become a property owner' },
-                { value: 'MAINTENANCE', icon: '🔧', title: 'Provide Maintenance', description: 'Maintenance staff' }
+                // { value: 'LANDLORD', icon: '💰', title: 'List my Property', description: 'Become a property owner' },
+                // { value: 'MAINTENANCE', icon: '🔧', title: 'Provide Maintenance', description: 'Maintenance staff' }
               ].map((role) => (
                 <label
                   key={role.value}
