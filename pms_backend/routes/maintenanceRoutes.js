@@ -3,10 +3,12 @@ import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
 import { upload } from "../middleware/uploadMiddleware.js";
 import {
     createMaintenanceTicket,
+    getStaffDashboardStats,
     getMyTickets,
     getLandlordTickets,
     assignTicket,
     updateTicketStatus,
+    getStaffTickets,
     closeTicket,
     getTicketById
 } from "../controllers/maintenanceController.js";
@@ -15,6 +17,15 @@ const router = Router();
 
 // TENANT: Create a ticket
 router.post("/", protect, authorizeRoles("TENANT"), upload.array("attachments", 5), createMaintenanceTicket);
+
+router.get(
+    "/dashboard/staff",
+    protect,
+    authorizeRoles("MAINTENANCE"),
+    getStaffDashboardStats
+);
+
+router.get("/staff/my", protect, getStaffTickets);
 
 //TENANT: View my tickets
 router.get("/my", protect, authorizeRoles("TENANT"), getMyTickets);

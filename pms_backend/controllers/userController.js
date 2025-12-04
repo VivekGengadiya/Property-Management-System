@@ -33,7 +33,7 @@ export const registerUser = async (req, res) => {
         }
 
         // Allowed role validation
-        const allowedRoles = ["LANDLORD", "TENANT", "ADMIN"];
+        const allowedRoles = ["LANDLORD", "TENANT", "MAINTENANCE"];
         if (!allowedRoles.includes(role)) {
             return res.status(400).json({
                 success: false,
@@ -116,5 +116,29 @@ export const loginUser = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Get users (optional filter by role)
+export const getUsers = async (req, res) => {
+    try {
+        const { role } = req.query;
+
+        const filter = {};
+        if (role) {
+            filter.role = role;
+        }
+
+        const users = await User.find(filter).select("-passwordHash");
+
+        res.json({
+            success: true,
+            data: users,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
     }
 };

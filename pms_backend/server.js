@@ -40,7 +40,7 @@ app.use(cors({
   credentials: true // if you use cookies/auth headers
 }));
 
-// ✅ [Optional Legacy] Serve static uploads (for old local files, not Cloudinary)
+
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // ✅ MongoDB Connection

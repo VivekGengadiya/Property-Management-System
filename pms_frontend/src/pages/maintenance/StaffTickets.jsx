@@ -266,17 +266,20 @@ const StaffTickets = () => {
                       View
                     </button>
 
-                    <button
-                      onClick={() => navigate(`/staff/ticket/${t._id}?update=true`)}
-                      style={{
-                        padding: "0.4rem 0.7rem",
-                        background: "seagreen",
-                        color: "white",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      Update
-                    </button>
+                   <button
+  onClick={() => navigate(`/staff/ticket/${t._id}?update=true`)}
+  disabled={t.status === "RESOLVED"}
+  style={{
+    padding: "0.4rem 0.7rem",
+    background: t.status === "RESOLVED" ? "#999" : "seagreen",
+    color: "white",
+    borderRadius: "8px",
+    cursor: t.status === "RESOLVED" ? "not-allowed" : "pointer",
+    opacity: t.status === "RESOLVED" ? 0.6 : 1,
+  }}
+>
+  Update
+</button>
                   </td>
                 </tr>
               ))}

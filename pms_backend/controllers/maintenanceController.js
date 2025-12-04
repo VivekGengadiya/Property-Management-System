@@ -4,6 +4,73 @@ import Property from "../models/Property.js";
 import Unit from "../models/Unit.js";
 
 /* ======================================================
+   MAINTENANCE STAFF: Dashboard Stats
+====================================================== */
+export const getStaffDashboardStats = async (req, res) => {
+    try {
+        const staffId = req.user.id;
+
+        const tickets = await MaintenanceTicket.find({ assignedTo: staffId });
+
+        const stats = {
+            totalAssigned: tickets.length,
+            open: tickets.filter(t => t.status === "OPEN").length,
+            inProgress: tickets.filter(t => t.status === "IN_PROGRESS").length,
+            onHold: tickets.filter(t => t.status === "ON_HOLD").length,
+            resolved: tickets.filter(t => t.status === "RESOLVED").length,
+
+            // tasks created in last 24hrs
+            todayTasks: tickets.filter(t =>
+                new Date(t.createdAt).toDateString() === new Date().toDateString()
+            ).length,
+
+            // overdue = older than 7 days and not resolved/closed
+            overdue: tickets.filter(t => {
+                const daysOld = (Date.now() - new Date(t.createdAt)) / (1000 * 60 * 60 * 24);
+                return daysOld > 7 && t.status !== "RESOLVED" && t.status !== "CLOSED";
+            }).length,
+        };
+
+        // recent activity (timeline)
+        const recentActivities = tickets
+            .flatMap(t =>
+                t.timeline.map(tl => ({
+                    ticketId: t._id,
+                    title: t.title,
+                    action: tl.action,
+                    at: tl.at,
+                }))
+            )
+            .sort((a, b) => new Date(b.at) - new Date(a.at))
+            .slice(0, 5);
+
+        res.json({ success: true, data: { stats, recentActivities } });
+
+    } catch (error) {
+        console.log("getStaffDashboardStats:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const getStaffTickets = async (req, res) => {
+  try {
+    const staffId = req.user.id; // from JWT
+
+    const tickets = await MaintenanceTicket.find({ assignedTo: staffId })
+      .populate("unitId") // if you want unit number
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: tickets
+    });
+  } catch (error) {
+    console.error("Error fetching staff tickets:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/* ======================================================
    TENANT: Create Maintenance Ticket
 ====================================================== */
 export const createMaintenanceTicket = async (req, res) => {

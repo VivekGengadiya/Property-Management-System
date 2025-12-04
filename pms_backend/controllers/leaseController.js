@@ -141,7 +141,31 @@ export const createLease = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+/* -------------------------------------------------
+   TENANT: View my ACTIVE leases only
+--------------------------------------------------- */
+export const getMyActiveLeases = async (req, res) => {
+    try {
+        const leases = await Lease.find({ 
+            tenantId: req.user.id,
+            status: "ACTIVE" // Only active leases
+        })
+        .populate({
+            path: "unitId",
+            select: "unitNumber rentAmount status propertyId bedrooms bathrooms depositAmount",
+            populate: { 
+                path: "propertyId", 
+                select: "name address images" 
+            },
+        })
+        .sort({ createdAt: -1 });
 
+        res.json({ success: true, data: leases });
+    } catch (error) {
+        console.error("getMyActiveLeases error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 /* -------------------------------------------------
    TENANT: View my leases
 --------------------------------------------------- */

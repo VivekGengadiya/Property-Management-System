@@ -1,4 +1,6 @@
 import Property from "../models/Property.js";
+import Unit from "../models/Unit.js";
+
 
 const normalizeAddress = (body, existing = {}) => {
   // Support nested (preferred) or flat (legacy) address input

@@ -1,6 +1,4 @@
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
-
-
+const API_BASE_URL = 'http://localhost:9000/api';
 
 // Generic API call function with auth
 export const apiCall = async (endpoint, options = {}) => {
@@ -58,6 +56,10 @@ console.log('🔐 API Call Debug:', {
   }
 };
 
+export const usersAPI = {
+  getUsersByRole: (role) => apiCall(`/users?role=${role}`, { method: "GET" }),
+};
+
 // Specific API functions - UPDATED TO MATCH YOUR BACKEND ROUTES
 export const authAPI = {
   login: (credentials) => apiCall('/users/login', {
@@ -94,6 +96,8 @@ export const propertyAPI = {
   deleteProperty: (id) => apiCall(`/properties/${id}`, {
     method: 'DELETE',
   }),
+  getDashboardStats: (ownerId) =>
+    apiCall(`/properties/dashboard-stats/${ownerId}`, { method: "GET" }),
 };
 
 export const unitAPI = {
