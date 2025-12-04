@@ -4,6 +4,7 @@ import { upload } from "../middleware/uploadMiddleware.js";
 import {
     createLease,
     getMyLeases,
+    getMyActiveLeases,
     getLandlordLeases,
     respondToLease,
     terminateLease,
@@ -32,6 +33,8 @@ router.put("/:id/respond", protect, authorizeRoles("TENANT"), respondToLease);
 
 // LANDLORD: Terminate lease
 router.put("/:id/terminate", protect, authorizeRoles("LANDLORD"), terminateLease);
+
+router.get("/my-active", protect, authorizeRoles("TENANT"), getMyActiveLeases);
 
 // GET /api/payments/latest/:invoiceId
 router.get("/latest/:invoiceId", async (req, res) => {

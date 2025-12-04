@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
+import { propertyAPI } from "../../services/api";
 
 import PropertyList from './PropertyList';
 import AddProperty from './AddProperty';
@@ -26,27 +27,25 @@ const OwnerDashboard = () => {
 
   // 🔥 FIXED: Load stats safely
   const loadStats = async () => {
-    try {
-      const ownerId = localStorage.getItem("userId");
-      const token = localStorage.getItem("token");
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const ownerId = user?.id || user?._id;
 
-      if (!ownerId || !token) {
-        console.warn("⚠️ Missing ownerId or token, cannot load dashboard stats.");
-        return;
-      }
-
-      const res = await axios.get(
-        `/api/property/dashboard-stats/${ownerId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (res.data?.success) {
-        setStats(res.data.data);
-      }
-    } catch (error) {
-      console.error("❌ Failed to fetch stats:", error);
+    if (!ownerId) {
+      console.warn("⚠️ Missing ownerId, cannot load dashboard stats.");
+      return;
     }
-  };
+
+    const res = await propertyAPI.getDashboardStats(ownerId);
+
+    if (res.success) {
+      setStats(res.data);
+    }
+  } catch (error) {
+    console.error("❌ Failed to fetch stats:", error);
+  }
+};
+
 
   // 🔥 FIXED: Refresh stats when something is added
   useEffect(() => {

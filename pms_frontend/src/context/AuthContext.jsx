@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [units, setUnits] = useState([]);
   const [leaseAgreements, setLeaseAgreements] = useState([]);
 
+  // 🔥 FIXED: Only restore user here
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -29,21 +30,23 @@ export const AuthProvider = ({ children }) => {
     if (token && userData) {
       try {
         const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        
-        // Only fetch data if user is authenticated
-        await fetchProperties();
-        await fetchUnits();
-        await fetchLeases();
+        setUser(parsedUser);  // 🔥 FIXED: Only set user, no fetching
       } catch (error) {
         console.error('Error checking auth status:', error);
-        // Clear invalid tokens
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
     }
     setLoading(false);
   };
+
+  // 🔥🔥🔥 FIXED: Fetch properties/units/leases ONLY AFTER user is available
+  useEffect(() => {
+    if (!user) return;     // Wait until user is restored
+    fetchProperties();
+    fetchUnits();
+    fetchLeases();
+  }, [user]);
 
   const fetchProperties = async () => {
     try {
@@ -65,44 +68,40 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
- const fetchLeases = async () => {
-  try {
-    let response;
+  const fetchLeases = async () => {
+    try {
+      let response;
 
-    if (user.role === "LANDLORD") {
-      response = await leaseAPI.listForLandlord();
-    } else if (user.role === "TENANT") {
-      response = await leaseAPI.listForTenant();
-    } else {
-      response = { data: [] };
+      if (user.role === "LANDLORD") {
+        response = await leaseAPI.listForLandlord();
+      } else if (user.role === "TENANT") {
+        response = await leaseAPI.listForTenant();
+      } else {
+        response = { data: [] };
+      }
+
+      setLeaseAgreements(response.data || []);
+    } catch (error) {
+      console.error('Error fetching leases:', error);
+      setLeaseAgreements([]);
     }
-
-    setLeaseAgreements(response.data || []);
-  } catch (error) {
-    console.error('Error fetching leases:', error);
-    setLeaseAgreements([]);
-  }
-};
-
+  };
 
   const login = async (email, password) => {
     setLoading(true);
     try {
       console.log('AuthContext: Making login API call...');
       const response = await authAPI.login({ email, password });
-      const data = response; // Since apiCall already returns data
+      const data = response;
 
       console.log('AuthContext: API response:', data);
 
       if (data.success && data.token && data.user) {
-        // Store token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         setUser(data.user);
 
         console.log('AuthContext: Login successful, user:', data.user);
-
-        // Return the result for the login form to use
         return { user: data.user, token: data.token };
       } else {
         console.error('AuthContext: Login failed - no token or user:', data);
@@ -110,14 +109,14 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('AuthContext: Login error:', error);
-      
+
       let errorMessage = 'Network error. Please try again.';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       throw new Error(errorMessage);
     } finally {
       setLoading(false);
@@ -131,10 +130,9 @@ export const AuthProvider = ({ children }) => {
       const data = response;
 
       if (data.success) {
-        // Auto-login after successful registration
-        const loginResponse = await authAPI.login({ 
-          email: userData.email, 
-          password: userData.password 
+        const loginResponse = await authAPI.login({
+          email: userData.email,
+          password: userData.password
         });
         const loginData = loginResponse;
 
@@ -174,55 +172,51 @@ export const AuthProvider = ({ children }) => {
         return '/owner/dashboard';
       case 'TENANT':
         return '/tenant/dashboard';
-      case 'ADMIN':
-        return '/admin/dashboard';
+      case 'MAINTENANCE':
+        return '/maintenance/dashboard';
       default:
         return '/dashboard';
     }
   };
 
-const addProperty = async (propertyData) => {
-  console.log('Adding property:', propertyData);
-  try {
-    // Expect propertyData.address = { line1, line2, city, state, country, postalCode }
-    const payload = {
-      ...propertyData,
-      landlordId: user.id || user._id,
-      // Do NOT spread address to root; keep nested
-      address: {
-        line1: propertyData.address?.line1 ?? "",
-        line2: propertyData.address?.line2 ?? "",
-        city: propertyData.address?.city ?? "",
-        state: propertyData.address?.state ?? "",
-        country: propertyData.address?.country ?? "",
-        postalCode: propertyData.address?.postalCode ?? ""
+  const addProperty = async (propertyData) => {
+    console.log('Adding property:', propertyData);
+    try {
+      const payload = {
+        ...propertyData,
+        landlordId: user.id || user._id,
+        address: {
+          line1: propertyData.address?.line1 ?? "",
+          line2: propertyData.address?.line2 ?? "",
+          city: propertyData.address?.city ?? "",
+          state: propertyData.address?.state ?? "",
+          country: propertyData.address?.country ?? "",
+          postalCode: propertyData.address?.postalCode ?? ""
+        }
+      };
+
+      const response = await propertyAPI.createProperty(payload);
+      console.log('Property API response:', response);
+
+      if (response.success) {
+        setProperties(prev => [...prev, response.data]);
+        return response.data;
+      } else {
+        throw new Error(response.message || 'Failed to add property');
       }
-    };
-
-    const response = await propertyAPI.createProperty(payload);
-    console.log('Property API response:', response);
-
-    if (response.success) {
-      setProperties(prev => [...prev, response.data]);
-      return response.data;
-    } else {
-      throw new Error(response.message || 'Failed to add property');
+    } catch (error) {
+      console.error('Error adding property:', error);
+      throw error;
     }
-  } catch (error) {
-    console.error('Error adding property:', error);
-    throw error;
-  }
-};
-
+  };
 
   const addUnit = async (unitData) => {
     console.log('Adding unit:', unitData);
     try {
-      // Use the unitAPI service instead of direct fetch
       const response = await unitAPI.createUnit(unitData);
-      
+
       console.log('Unit API response:', response);
-      
+
       if (response.success) {
         setUnits(prev => [...prev, response.data]);
         return response.data;
@@ -237,12 +231,10 @@ const addProperty = async (propertyData) => {
 
   const deleteProperty = async (propertyId) => {
     try {
-      // Use the propertyAPI service instead of direct fetch
       const response = await propertyAPI.deleteProperty(propertyId);
-      
+
       if (response.success) {
         setProperties(prev => prev.filter(prop => prop._id !== propertyId));
-        // Also remove units associated with this property
         setUnits(prev => prev.filter(unit => unit.propertyId !== propertyId));
         return true;
       } else {
@@ -256,9 +248,8 @@ const addProperty = async (propertyData) => {
 
   const deleteUnit = async (unitId) => {
     try {
-      // Use the unitAPI service instead of direct fetch
       const response = await unitAPI.deleteUnit(unitId);
-      
+
       if (response.success) {
         setUnits(prev => prev.filter(unit => unit._id !== unitId));
         return true;
@@ -272,51 +263,51 @@ const addProperty = async (propertyData) => {
   };
 
   const updateProperty = async (propertyId, propertyData) => {
-  console.log('Updating property:', propertyId, propertyData);
-  try {
-    const response = await propertyAPI.updateProperty(propertyId, propertyData);
-    
-    console.log('Property update response:', response);
-    
-    if (response.success) {
-      setProperties(prev => prev.map(prop => 
-        prop._id === propertyId ? { ...prop, ...response.data } : prop
-      ));
-      return response.data;
-    } else {
-      throw new Error(response.message || 'Failed to update property');
-    }
-  } catch (error) {
-    console.error('Error updating property:', error);
-    throw error;
-  }
-};
+    console.log('Updating property:', propertyId, propertyData);
+    try {
+      const response = await propertyAPI.updateProperty(propertyId, propertyData);
 
-const updateUnit = async (unitId, unitData) => {
-  console.log('Updating unit:', unitId, unitData);
-  try {
-    const response = await unitAPI.updateUnit(unitId, unitData);
-    
-    console.log('Unit update response:', response);
-    
-    if (response.success) {
-      setUnits(prev => prev.map(unit => 
-        unit._id === unitId ? { ...unit, ...response.data } : unit
-      ));
-      return response.data;
-    } else {
-      throw new Error(response.message || 'Failed to update unit');
+      console.log('Property update response:', response);
+
+      if (response.success) {
+        setProperties(prev => prev.map(prop =>
+          prop._id === propertyId ? { ...prop, ...response.data } : prop
+        ));
+        return response.data;
+      } else {
+        throw new Error(response.message || 'Failed to update property');
+      }
+    } catch (error) {
+      console.error('Error updating property:', error);
+      throw error;
     }
-  } catch (error) {
-    console.error('Error updating unit:', error);
-    throw error;
-  }
-};
+  };
+
+  const updateUnit = async (unitId, unitData) => {
+    console.log('Updating unit:', unitId, unitData);
+    try {
+      const response = await unitAPI.updateUnit(unitId, unitData);
+
+      console.log('Unit update response:', response);
+
+      if (response.success) {
+        setUnits(prev => prev.map(unit =>
+          unit._id === unitId ? { ...unit, ...response.data } : unit
+        ));
+        return response.data;
+      } else {
+        throw new Error(response.message || 'Failed to update unit');
+      }
+    } catch (error) {
+      console.error('Error updating unit:', error);
+      throw error;
+    }
+  };
 
   const createLeaseAgreement = async (leaseData) => {
     try {
       const response = await leaseAPI.create(leaseData);
-      
+
       if (response.success) {
         setLeaseAgreements((prev) => [...prev, response.data]);
         return response.data;
