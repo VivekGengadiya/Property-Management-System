@@ -8,7 +8,7 @@
   
   /* Accent Colors */
   --accent-olive: #B7A16A;  /* earthy gold-brown */
-  --accent-green: #7DA87B;  /* natural green */
+  --accent-green: #5A7A6E;  /* natural green */
   --accent-blue: #A6C8CE;   /* soft sky blue */
   
   /* Neutrals */
@@ -18,7 +18,7 @@
   
   --text-primary: #2E3A35;  /* deep gray-green text */
   --text-secondary: #4F5E57;/* muted text */
-  --text-muted: #7B8A83;    /* placeholder text */
+  --text-muted: #000000;    /* placeholder text */
   
   /* Gradients */
   --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-green) 100%);

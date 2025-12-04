@@ -226,4 +226,6 @@ export const uploadAPI = {
 };
 
 // Health check
+
 export const healthCheck = () => apiCall('/health');
+
