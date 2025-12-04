@@ -383,7 +383,7 @@ const Footer = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style >{`
         @keyframes gradientShift {
           0%,
           100% {
