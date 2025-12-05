@@ -75,16 +75,6 @@ app.use("/api/invoices", invoiceRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
 
-console.log("Mounted routes:");
-console.log(" - /api/users");
-console.log(" - /api/properties");
-console.log(" - /api/units");
-console.log(" - /api/applications");
-console.log(" - /api/leases");
-console.log(" - /api/invoices");
-console.log(" - /api/payments");
-console.log(" - /api/maintenance");
-
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({

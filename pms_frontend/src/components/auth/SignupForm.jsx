@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useError } from "../../context/ErrorContext";
 import Navbar from '../common/Navbar';
 
 const SignupForm = () => {
+  const { showError } = useError();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -83,8 +85,10 @@ const SignupForm = () => {
       const dashboardPath = getRoleDashboardPath(result.user.role);
       navigate(dashboardPath);
     } catch (error) {
+      showError(error.message);
       setErrors({ general: error.message || 'Something went wrong during signup' });
     }
+    return;
   };
 
   // Combine all error messages at the top

@@ -40,6 +40,7 @@ const Navbar = () => {
       { to: '/about', label: 'About' },
       { to: '/media', label: 'Media' },
       { to: '/contact', label: 'Contact Us' },
+      { to: '/profile', label: 'Profile' },
     ],
     MAINTENANCE: [
       { to: '/', label: 'Home' },

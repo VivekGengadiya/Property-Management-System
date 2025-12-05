@@ -1,0 +1,29 @@
+/* Global toast shown at the top of the screen */
+.global-error-banner {
+  position: fixed;
+  top: 20px;            /* Show at top */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff3b30;  /* Apple red warning color */
+  color: #fff;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  z-index: 99999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  animation: slideDown 0.4s ease-out;
+}
+
+/* Small slide-down animation */
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
