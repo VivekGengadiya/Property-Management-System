@@ -20,7 +20,8 @@ const PropertyDetail = () => {
   const fetchPropertyDetail = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:9000/api/properties/${id}`, {
+      const response = await apiCall(`
+/properties/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -43,7 +44,8 @@ const PropertyDetail = () => {
   const fetchPropertyUnits = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:9000/api/units?propertyId=${id}`, {
+      const response = await apiCall(`
+/units?propertyId=${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

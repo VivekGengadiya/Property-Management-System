@@ -64,7 +64,7 @@ const Applications = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:9000/api/applications/my', {
+      const response = await apiCall(`/applications/my`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -104,7 +104,7 @@ const Applications = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:9000/api/applications/my/${applicationId}`, {
+      const response = await apiCall(`/applications/my/${applicationId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

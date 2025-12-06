@@ -43,7 +43,7 @@ const CreateMaintenanceTicket = () => {
   const fetchActiveLeases = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:9000/api/leases/my-active', {
+      const response = await apiCall(`/leases/my-active`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -98,7 +98,7 @@ const CreateMaintenanceTicket = () => {
         formDataToSend.append('attachments', file);
       });
 
-      const response = await fetch('http://localhost:9000/api/maintenance', {
+      const response = await apiCall(`/maintenance`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

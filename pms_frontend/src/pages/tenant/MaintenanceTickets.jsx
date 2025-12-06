@@ -21,7 +21,8 @@ const MaintenanceTickets = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:9000/api/maintenance/my', {
+      const response = await apiCall(`
+/maintenance/my`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
