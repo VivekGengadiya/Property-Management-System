@@ -1,6 +1,8 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://backend-property-management-system.onrender.com/api";
+  (location.origin.includes("localhost")
+    ? "http://localhost:9000/api"
+    : "https://backend-property-management-system.onrender.com/api");
 
 // Generic API call function with auth
 export const apiCall = async (endpoint, options = {}) => {
@@ -226,5 +228,6 @@ export const uploadAPI = {
 // Health check
 
 export const healthCheck = () => apiCall('/health');
+
 
 
