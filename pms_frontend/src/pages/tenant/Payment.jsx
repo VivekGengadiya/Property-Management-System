@@ -22,7 +22,8 @@ const refreshAuthToken = async () => {
   try {
     const refreshToken = localStorage.getItem('refreshToken');
     
-    const response = await fetch('http://localhost:9000/api/auth/refresh', {
+    const response = await apiCall(`
+/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -84,7 +85,8 @@ const Payment = () => {
     const token = await getValidToken();
     
     // Record payment in your backend
-    const response = await fetch('http://localhost:9000/api/payments/paypal', {
+    const response = await apiCall(`
+/payments/paypal`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -26,7 +26,8 @@ const UnitDetail = () => {
       };
 
       // Fetch unit details
-      const unitResponse = await fetch(`http://localhost:9000/api/units/${id}`, {
+      const unitResponse = await apiCall(`
+/units/${id}`, {
         headers
       });
       
@@ -54,7 +55,8 @@ const UnitDetail = () => {
 
   const fetchPropertyDetails = async (propertyId, headers) => {
     try {
-      const propertyResponse = await fetch(`http://localhost:9000/api/properties/${propertyId}`, {
+      const propertyResponse = await apiCall(`
+/properties/${propertyId}`, {
         headers
       });
       

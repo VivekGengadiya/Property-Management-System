@@ -50,7 +50,8 @@ const TenantDashboard = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:9000/api/properties', {
+      const response = await apiCall(`
+/properties`, {
         headers: getAuthHeaders(),
       });
 
@@ -93,7 +94,8 @@ const TenantDashboard = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:9000/api/units', {
+      const response = await apiCall(`
+/units`, {
         headers: getAuthHeaders(),
       });
 

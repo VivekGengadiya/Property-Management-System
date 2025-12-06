@@ -69,7 +69,8 @@ const MyLeases = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:9000/api/leases/my', {
+      const response = await apiCall(`
+/leases/my`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

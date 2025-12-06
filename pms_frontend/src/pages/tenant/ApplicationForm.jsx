@@ -44,7 +44,7 @@ const fetchPropertyAndUnitDetails = async () => {
 
     // Fetch unit details
     if (unitId) {
-      const unitResponse = await fetch(`http://localhost:9000/api/units/${unitId}`, { headers });
+      const unitResponse = await apiCall(`/units/${unitId}`, { headers });
 
       if (unitResponse.ok) {
         const unitData = await unitResponse.json();
@@ -60,8 +60,7 @@ const fetchPropertyAndUnitDetails = async () => {
             : propertyRef?._id;  // If populated object → take _id
 
           if (propertyIdValue) {
-            const propertyResponse = await fetch(
-              `http://localhost:9000/api/properties/${propertyIdValue}`,
+            const propertyResponse = await apiCall(`/properties/${propertyIdValue}`,
               { headers }
             );
 
@@ -239,7 +238,8 @@ const fetchPropertyAndUnitDetails = async () => {
         submitData.append('docs', file);
       });
 
-      const response = await fetch('http://localhost:9000/api/applications', {
+      const response = await apiCall(`
+/applications`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

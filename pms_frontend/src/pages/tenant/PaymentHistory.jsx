@@ -19,7 +19,8 @@ const isValidToken = (token) => {
 const refreshAuthToken = async () => {
   try {
     const refreshToken = localStorage.getItem('refreshToken');
-    const response = await fetch('http://localhost:9000/api/auth/refresh', {
+    const response = await apiCall(`
+/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -56,7 +57,8 @@ const PaymentHistory = () => {
   const fetchPayments = async () => {
     try {
       const token = await getValidToken();
-      const response = await fetch('http://localhost:9000/api/payments/my', {
+      const response = await apiCall(`
+/payments/my`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
