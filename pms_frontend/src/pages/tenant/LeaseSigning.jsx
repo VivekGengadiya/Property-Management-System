@@ -35,8 +35,7 @@ const LeaseSigning = () => {
   const fetchApplicationDetails = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await apiCall(`
-/applications/${applicationId}`, {
+      const response = await apiCall(`/applications/${applicationId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -73,8 +72,7 @@ const LeaseSigning = () => {
   const fetchUnitDetails = async (unitId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await apiCall(`
-/units/${unitId}`, {
+      const response = await apiCall(`/units/${unitId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -99,8 +97,7 @@ const LeaseSigning = () => {
   const fetchPropertyDetails = async (propertyId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await apiCall(`
-/properties/${propertyId}`, {
+      const response = await apiCall(`/properties/${propertyId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -138,8 +135,7 @@ const LeaseSigning = () => {
         throw new Error('Please login to create lease');
       }
 
-      const response = await apiCall(`
-/leases`, {
+      const response = await apiCall(`/leases`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
