@@ -2,8 +2,10 @@ import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../common/Navbar';
+import { useError } from "../../context/ErrorContext";
 
 const LoginForm = () => {
+  const { showError } = useError();
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -64,6 +66,7 @@ const LoginForm = () => {
         setErrors({ general: 'Invalid email or password. Please try again.' });
       }
     } catch (error) {
+      showError(error.message);
       handleLoginError(error);
     } finally {
       setIsLoading(false);
