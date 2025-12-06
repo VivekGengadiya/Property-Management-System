@@ -22,8 +22,7 @@ const MaintenanceTickets = () => {
         return;
       }
 
-      const response = await apiCall(`
-/maintenance/my`, {
+      const response = await apiCall(`/maintenance/my`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

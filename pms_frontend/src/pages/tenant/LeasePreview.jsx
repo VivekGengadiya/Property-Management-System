@@ -34,8 +34,7 @@ const [paymentDone, setPaymentDone] = useState(false);
       // If we have a specific leaseId, fetch that lease directly
       if (leaseId) {
         console.log("Fetching specific lease:", leaseId);
-        const response = await apiCall(`
-/leases/${leaseId}`, {
+        const response = await apiCall(`/leases/${leaseId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -60,8 +59,7 @@ const [paymentDone, setPaymentDone] = useState(false);
       } else {
         // If no leaseId, fetch all user leases and find the relevant one
         console.log("Fetching all user leases...");
-        const response = await apiCall(`
-/leases/my`, {
+        const response = await apiCall(`/leases/my`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -121,8 +119,7 @@ const [paymentDone, setPaymentDone] = useState(false);
     try {
       console.log("Fetching unit details for:", unitId);
       const token = localStorage.getItem("token");
-      const response = await apiCall(`
-/units/${unitId}`, {
+      const response = await apiCall(`/units/${unitId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -153,8 +150,7 @@ const [paymentDone, setPaymentDone] = useState(false);
     try {
       console.log("Fetching property details for:", propertyId);
       const token = localStorage.getItem("token");
-      const response = await apiCall(`
-/properties/${propertyId}`, {
+      const response = await apiCall(`/properties/${propertyId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -187,8 +183,7 @@ const [paymentDone, setPaymentDone] = useState(false);
     setSigning(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await apiCall(`
-/leases/${leaseData._id}/respond`, {
+      const response = await apiCall(`/leases/${leaseData._id}/respond`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -232,8 +227,7 @@ const [paymentDone, setPaymentDone] = useState(false);
     setSigning(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await apiCall(`
-/leases/${leaseData._id}/respond`, {
+      const response = await apiCall(`/leases/${leaseData._id}/respond`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -283,8 +277,7 @@ const [paymentDone, setPaymentDone] = useState(false);
   const fetchInvoiceForLease = async (leaseId) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await apiCall(`
-/invoices/lease/${leaseId}`, {
+    const response = await apiCall(`/invoices/lease/${leaseId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -317,8 +310,7 @@ const [paymentDone, setPaymentDone] = useState(false);
       return;
     }
 
-    const res = await apiCall(`
-/leases/${leaseData._id}/pdf`,
+    const res = await apiCall(`/leases/${leaseData._id}/pdf`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -349,8 +341,7 @@ const downloadInvoice = async (invoiceId) => {
   try {
     const token = localStorage.getItem("token");
 
-    const res = await apiCall(`
-/invoices/${invoiceId}/pdf`,
+    const res = await apiCall(`/invoices/${invoiceId}/pdf`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

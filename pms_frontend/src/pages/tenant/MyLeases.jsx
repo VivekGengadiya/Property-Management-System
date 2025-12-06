@@ -70,8 +70,7 @@ const MyLeases = () => {
         return;
       }
 
-      const response = await apiCall(`
-/leases/my`, {
+      const response = await apiCall(`/leases/my`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

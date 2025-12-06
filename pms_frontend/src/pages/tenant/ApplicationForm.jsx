@@ -239,8 +239,7 @@ const fetchPropertyAndUnitDetails = async () => {
         submitData.append('docs', file);
       });
 
-      const response = await apiCall(`
-/applications`, {
+      const response = await apiCall(`/applications`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

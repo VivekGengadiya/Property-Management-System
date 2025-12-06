@@ -52,8 +52,7 @@ const TenantDashboard = () => {
         return;
       }
 
-      const response = await apiCall(`
-/properties`, {
+      const response = await apiCall(`/properties`, {
         headers: getAuthHeaders(),
       });
 
@@ -96,8 +95,7 @@ const TenantDashboard = () => {
         return;
       }
 
-      const response = await apiCall(`
-/units`, {
+      const response = await apiCall(`/units`, {
         headers: getAuthHeaders(),
       });
 
