@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+console.log("🔧 Loaded API Base URL:", API_BASE_URL);
 
 // Generic API call function with auth
 export const apiCall = async (endpoint, options = {}) => {
@@ -225,6 +226,7 @@ export const uploadAPI = {
 // Health check
 
 export const healthCheck = () => apiCall('/health');
+
 
 
 
