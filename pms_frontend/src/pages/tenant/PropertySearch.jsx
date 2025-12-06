@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import { apiCall } from "../../services/api.js";
 
 const PropertySearch = () => {
   const { properties, createLeaseAgreement, user } = useAuth();

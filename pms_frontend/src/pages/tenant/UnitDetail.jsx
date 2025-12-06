@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/common/Navbar.jsx';
 import Footer from '../../components/common/Footer.jsx';
+import { apiCall } from "../../services/api.js";
 
 const UnitDetail = () => {
   const { id } = useParams();

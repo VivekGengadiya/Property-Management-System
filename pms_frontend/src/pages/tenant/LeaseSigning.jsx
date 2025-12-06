@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../../components/common/Navbar.jsx';
 import Footer from '../../components/common/Footer.jsx';
+import { apiCall } from "../../services/api";
 
 const LeaseSigning = () => {
   const location = useLocation();

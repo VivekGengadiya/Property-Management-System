@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from '../../components/common/Navbar.jsx';
 import Footer from '../../components/common/Footer.jsx';
+import { apiCall } from "../../services/api";
 
 const TenantLeasePreview = () => {
   const { leaseId } = useParams();

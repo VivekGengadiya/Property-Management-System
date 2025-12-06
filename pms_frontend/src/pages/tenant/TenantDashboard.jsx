@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import Navbar from '../../components/common/Navbar.jsx';
 import Footer from '../../components/common/Footer.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { apiCall } from "../../services/api.js";
+
 
 const TenantDashboard = () => {
   const [properties, setProperties] = useState([]);
@@ -148,7 +150,7 @@ const TenantDashboard = () => {
       if (typeof property.images[0] === 'string' && property.images[0].startsWith('http')) {
         return property.images[0];
       }
-      return `http://localhost:9000${property.images[0]}`;
+      return apiCall(`${property.images[0]}`);
     }
     return 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
   };
@@ -158,7 +160,7 @@ const TenantDashboard = () => {
       if (typeof unit.images[0] === 'string' && unit.images[0].startsWith('http')) {
         return unit.images[0];
       }
-      return `http://localhost:9000${unit.images[0]}`;
+      return apiCall(`${unit.images[0]}`);
     }
     return 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
   };

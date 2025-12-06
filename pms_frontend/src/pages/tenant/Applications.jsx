@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/common/Navbar.jsx';
 import Footer from '../../components/common/Footer.jsx';
+import { apiCall } from "../../services/api";
 
 const Applications = () => {
   const [applications, setApplications] = useState([]);
