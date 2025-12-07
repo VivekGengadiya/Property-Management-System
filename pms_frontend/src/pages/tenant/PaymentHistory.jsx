@@ -19,27 +19,29 @@ const isValidToken = (token) => {
 
 const refreshAuthToken = async () => {
   try {
-    const refreshToken = localStorage.getItem('refreshToken');
-    const response = await apiCall(`
-/auth/refresh`, {
-      method: 'POST',
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    const data = await apiCall("/auth/refresh", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${refreshToken}`
-      }
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${refreshToken}`,
+      },
     });
-    
-    if (response.ok) {
-      const { accessToken } = await response.json();
-      localStorage.setItem('token', accessToken);
-      return accessToken;
+
+    if (data.success && data.accessToken) {
+      localStorage.setItem("token", data.accessToken);
+      return data.accessToken;
     }
-    throw new Error('Token refresh failed');
+
+    throw new Error(data.message || "Token refresh failed");
+
   } catch (error) {
-    console.error('Token refresh error:', error);
+    console.error("Token refresh error:", error);
     throw error;
   }
 };
+
 
 const getValidToken = async () => {
   let token = localStorage.getItem('token');
@@ -55,40 +57,30 @@ const PaymentHistory = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const fetchPayments = async () => {
-    try {
-      const token = await getValidToken();
-      const response = await apiCall(`
-/payments/my`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+ const fetchPayments = async () => {
+  try {
+    const token = await getValidToken();
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError('Please login to view payment history');
-          navigate('/login');
-          return;
-        }
-        throw new Error(`Failed to fetch payments: ${response.status}`);
-      }
+    const data = await apiCall("/payments/my", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-      const result = await response.json();
-      
-      if (result.success) {
-        setPayments(result.data || []);
-      } else {
-        setError(result.message || 'Failed to load payments');
-      }
-    } catch (error) {
-      console.error('Error fetching payments:', error);
-      setError('Failed to load payment history. Please try again.');
-    } finally {
-      setLoading(false);
+    if (data.success) {
+      setPayments(data.data || []);
+    } else {
+      setError(data.message || "Failed to load payments");
     }
-  };
+
+  } catch (error) {
+    console.error("Error fetching payments:", error);
+    setError("Failed to load payment history. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchPayments();

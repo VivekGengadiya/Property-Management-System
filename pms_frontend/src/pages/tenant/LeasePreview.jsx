@@ -21,93 +21,96 @@ const [paymentDone, setPaymentDone] = useState(false);
 
   // Fetch lease data from backend
   const fetchLeaseData = async () => {
-    try {
-      console.log("Starting to fetch lease data...");
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Please login to view lease");
-        setLoading(false);
-        navigate("/login");
-        return;
-      }
+  try {
+    console.log("Starting to fetch lease data...");
+    const token = localStorage.getItem("token");
 
-      // If we have a specific leaseId, fetch that lease directly
-      if (leaseId) {
-        console.log("Fetching specific lease:", leaseId);
-        const response = await apiCall(`/leases/${leaseId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch lease: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log("Lease API response:", result);
-
-        if (result.success && result.data) {
-          setLeaseData(result.data);
-          await fetchUnitAndPropertyDetails(result.data.unitId);
-          await fetchInvoiceForLease(result.data._id);
-
-        } else {
-          throw new Error(result.message || "Failed to load lease data");
-        }
-      } else {
-        // If no leaseId, fetch all user leases and find the relevant one
-        console.log("Fetching all user leases...");
-        const response = await apiCall(`/leases/my`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch leases");
-        }
-
-        const result = await response.json();
-        console.log("All leases API response:", result);
-
-        if (result.success && result.data) {
-          // Try to find lease by applicationId from location state
-          const applicationId = location.state?.applicationId;
-          let targetLease;
-
-          if (applicationId) {
-            // Look for lease with matching applicationId
-            targetLease = result.data.find((lease) => lease.applicationId === applicationId);
-          }
-
-          // If no lease found by applicationId, take the first pending lease
-          if (!targetLease) {
-            targetLease = result.data.find((lease) => lease.status === "PENDING") || result.data[0];
-          }
-
-          if (targetLease) {
-            console.log("Found lease:", targetLease);
-            setLeaseData(targetLease);
-            await fetchUnitAndPropertyDetails(targetLease.unitId);
-            await fetchInvoiceForLease(targetLease._id);
-
-          } else {
-            throw new Error("No lease found for your account");
-          }
-        } else {
-          throw new Error(result.message || "Failed to load lease data");
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching lease data:", error);
-      setError(error.message || "Failed to load lease agreement");
-    } finally {
+    if (!token) {
+      setError("Please login to view lease");
       setLoading(false);
+      navigate("/login");
+      return;
     }
-  };
+
+    let data;
+
+    // If we have a specific leaseId → fetch single lease
+    if (leaseId) {
+      console.log("Fetching specific lease:", leaseId);
+
+      data = await apiCall(`/leases/${leaseId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Lease API response:", data);
+
+      if (!data.success || !data.data) {
+        throw new Error(data.message || "Failed to load lease data");
+      }
+
+      setLeaseData(data.data);
+
+      await fetchUnitAndPropertyDetails(data.data.unitId);
+      await fetchInvoiceForLease(data.data._id);
+
+    } else {
+      // Fetch all user leases
+      console.log("Fetching all user leases...");
+
+      data = await apiCall(`/leases/my`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("All leases API response:", data);
+
+      if (!data.success || !data.data) {
+        throw new Error(data.message || "Failed to load lease data");
+      }
+
+      const leases = data.data;
+
+      // Compare with applicationId from state
+      const applicationId = location.state?.applicationId;
+
+      let targetLease;
+
+      if (applicationId) {
+        targetLease = leases.find(
+          (lease) => lease.applicationId === applicationId
+        );
+      }
+
+      // If not found → fallback to first pending or first lease
+      if (!targetLease) {
+        targetLease =
+          leases.find((lease) => lease.status === "PENDING") ||
+          leases[0];
+      }
+
+      if (!targetLease) {
+        throw new Error("No lease found for your account");
+      }
+
+      console.log("Found lease:", targetLease);
+      setLeaseData(targetLease);
+
+      await fetchUnitAndPropertyDetails(targetLease.unitId);
+      await fetchInvoiceForLease(targetLease._id);
+    }
+  } catch (error) {
+    console.error("Error fetching lease data:", error);
+    setError(error.message || "Failed to load lease agreement");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Fetch unit and property details
   const fetchUnitAndPropertyDetails = async (unitId) => {

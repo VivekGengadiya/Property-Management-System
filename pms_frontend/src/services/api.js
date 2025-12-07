@@ -1,6 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-
+console.log('🌐 API Base URL:', API_BASE_URL);
 // Generic API call function with auth
 export const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');

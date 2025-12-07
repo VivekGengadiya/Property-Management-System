@@ -13,49 +13,40 @@ const LeasedProperties = () => {
     fetchLeasedProperties();
   }, []);
 
-  const fetchLeasedProperties = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Please login to view your leased properties');
-        setLoading(false);
-        return;
-      }
-
-      const response = await apiCall(`/leases/my`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError('Authentication failed. Please login again.');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          return;
-        }
-        throw new Error(`Failed to fetch leases: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Leases API response:', data);
-      
-      if (data.success) {
-        // Filter for active leases only on the frontend
-        const activeLeases = data.data.filter(lease => lease.status === 'ACTIVE');
-        setLeases(activeLeases || []);
-      } else {
-        setError(data.message || 'Failed to load leased properties');
-      }
+ const fetchLeasedProperties = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Please login to view your leased properties');
       setLoading(false);
-    } catch (err) {
-      console.error('Error fetching leased properties:', err);
-      setError('Failed to load leased properties. Please try again later.');
-      setLoading(false);
+      return;
     }
-  };
+
+    const data = await apiCall(`/leases/my`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Leases API response:", data);
+
+    if (data.success) {
+      const activeLeases = data.data.filter(
+        (lease) => lease.status === "ACTIVE"
+      );
+      setLeases(activeLeases);
+    } else {
+      setError(data.message || "Failed to load leased properties");
+    }
+  } catch (err) {
+    console.error("Error fetching leased properties:", err);
+    setError("Failed to load leased properties. Please try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {

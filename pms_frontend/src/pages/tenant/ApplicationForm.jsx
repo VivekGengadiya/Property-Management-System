@@ -40,45 +40,44 @@ const fetchPropertyAndUnitDetails = async () => {
     const token = localStorage.getItem('token');
     const headers = {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
+      ...(token && { Authorization: `Bearer ${token}` }),
     };
 
     // Fetch unit details
     if (unitId) {
-      const unitResponse = await apiCall(`/units/${unitId}`, { headers });
+      const unitData = await apiCall(`/units/${unitId}`, { headers });
 
-      if (unitResponse.ok) {
-        const unitData = await unitResponse.json();
+      if (unitData.success) {
+        setUnit(unitData.data);
 
-        if (unitData.success) {
-          setUnit(unitData.data);
-
-          // --- FIX: Ensure correct propertyId extraction ---
-          const propertyRef = unitData.data.propertyId;
-
-          const propertyIdValue = typeof propertyRef === "string"
+        // Extract propertyId safely
+        const propertyRef = unitData.data.propertyId;
+        const propertyIdValue =
+          typeof propertyRef === "string"
             ? propertyRef
-            : propertyRef?._id;  // If populated object → take _id
+            : propertyRef?._id;
 
-          if (propertyIdValue) {
-            const propertyResponse = await apiCall(`/properties/${propertyIdValue}`,
-              { headers }
-            );
+        // Fetch property details
+        if (propertyIdValue) {
+          const propertyData = await apiCall(`/properties/${propertyIdValue}`, {
+            headers,
+          });
 
-            if (propertyResponse.ok) {
-              const propertyData = await propertyResponse.json();
-              if (propertyData.success) {
-                setProperty(propertyData.data);
-              }
-            }
+          if (propertyData.success) {
+            setProperty(propertyData.data);
+          } else {
+            console.error("Failed to load property details");
           }
         }
+      } else {
+        console.error("Failed to load unit details:", unitData.message);
       }
     }
   } catch (err) {
-    console.error('Error fetching details:', err);
+    console.error("Error fetching details:", err);
   }
 };
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

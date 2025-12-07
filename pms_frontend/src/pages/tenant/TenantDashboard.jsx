@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { apiCall } from "../../services/api.js";
 
 
+
 const TenantDashboard = () => {
   const [properties, setProperties] = useState([]);
   const [units, setUnits] = useState([]);
@@ -44,93 +45,60 @@ const TenantDashboard = () => {
   };
 
   const fetchProperties = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Please login to view properties');
-        setLoading(false);
-        return;
-      }
-
-      const response = await apiCall(`/properties`, {
-        headers: getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError('Authentication failed. Please login again.');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setLoading(false);
-          return;
-        }
-        throw new Error(`Failed to fetch properties: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setProperties(data.data || []);
-      } else {
-        setError(data.message || 'Failed to load properties');
-      }
-    } catch (err) {
-      console.error('Error fetching properties:', err);
-      if (
-        err.message.includes('Network error') ||
-        err.message.includes('Failed to fetch')
-      ) {
-        setError('Unable to connect to server. Please check your connection.');
-      } else {
-        setError('Failed to load properties. Please try again later.');
-      }
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Please login to view properties');
+      setLoading(false);
+      return;
     }
-  };
+
+    const data = await apiCall('/properties', {
+      headers: getAuthHeaders(),
+    });
+
+    // apiCall always returns JSON directly
+    if (data.success) {
+      setProperties(data.data || []);
+    } else {
+      setError(data.message || 'Failed to load properties');
+    }
+
+  } catch (err) {
+    console.error('Error fetching properties:', err);
+    setError(err.message || 'Failed to load properties.');
+  }
+};
+
 
   const fetchUnits = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Please login to view units');
-        setLoading(false);
-        return;
-      }
-
-      const response = await apiCall(`/units`, {
-        headers: getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError('Authentication failed. Please login again.');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setLoading(false);
-          return;
-        }
-        throw new Error(`Failed to fetch units: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Units data from API:', data);
-      if (data.success) {
-        setUnits(data.data || []);
-      } else {
-        setError(data.message || 'Failed to load units');
-      }
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Please login to view units');
       setLoading(false);
-    } catch (err) {
-      console.error('Error fetching units:', err);
-      if (
-        err.message.includes('Network error') ||
-        err.message.includes('Failed to fetch')
-      ) {
-        setError('Unable to connect to server. Please check your connection.');
-      } else {
-        setError('Failed to load available units. Please try again later.');
-      }
-      setLoading(false);
+      return;
     }
-  };
+
+    const data = await apiCall('/units', {
+      headers: getAuthHeaders(),
+    });
+
+    if (data.success) {
+      setUnits(data.data || []);
+    } else {
+      setError(data.message || 'Failed to load units');
+    }
+
+    setLoading(false);
+
+  } catch (err) {
+    console.error('Error fetching units:', err);
+    setError(err.message || 'Failed to load units.');
+    setLoading(false);
+  }
+};
+
 
   const getUnitsForProperty = (propertyId) => {
     const normalizedPropertyId = normalizeId(propertyId);
