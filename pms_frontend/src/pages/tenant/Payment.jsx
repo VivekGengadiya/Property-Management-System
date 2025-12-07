@@ -21,29 +21,29 @@ const isValidToken = (token) => {
 
 const refreshAuthToken = async () => {
   try {
-    const refreshToken = localStorage.getItem('refreshToken');
-    
-    const response = await apiCall(`
-/auth/refresh`, {
-      method: 'POST',
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    const data = await apiCall("/auth/refresh", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${refreshToken}`
-      }
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${refreshToken}`,
+      },
     });
-    
-    if (response.ok) {
-      const { accessToken } = await response.json();
-      localStorage.setItem('token', accessToken);
-      return accessToken;
+
+    // apiCall throws error automatically if not 200, so we only check data.success
+    if (data.success && data.accessToken) {
+      localStorage.setItem("token", data.accessToken);
+      return data.accessToken;
     }
-    
-    throw new Error('Token refresh failed');
+
+    throw new Error(data.message || "Token refresh failed");
   } catch (error) {
-    console.error('Token refresh error:', error);
+    console.error("Token refresh error:", error);
     throw error;
   }
 };
+
 
 const getValidToken = async () => {
   let token = localStorage.getItem('token');
@@ -80,44 +80,40 @@ const Payment = () => {
 
   const handlePaymentSuccess = async (paymentData) => {
   try {
-    console.log('Payment successful, recording in backend...', paymentData);
-    
-    // Get valid token before making the API call
+    console.log("Payment successful, recording in backend...", paymentData);
+
     const token = await getValidToken();
-    
-    // Record payment in your backend
-    const response = await apiCall(`
-/payments/paypal`, {
-      method: 'POST',
+
+    const data = await apiCall("/payments/paypal", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
+      body: {
         leaseId: leaseId,
         amount: totalAmount,
         paypalOrderId: paymentData.orderID,
-        paypalPayerId: paymentData.payerID
-      })
+        paypalPayerId: paymentData.payerID,
+      },
     });
 
-    console.log('Backend response status:', response.status);
-    
-    const result = await response.json();
-    console.log('Backend response data:', result);
-    
-    if (result.success) {
+    console.log("Backend response data:", data);
+
+    if (data.success) {
       setPaymentSuccess(true);
       setTransactionDetails(paymentData);
     } else {
-      console.error('Backend payment recording failed:', result.message);
-      alert(`Payment succeeded but failed to record: ${result.message}`);
+      console.error("Backend payment recording failed:", data.message);
+      alert(`Payment succeeded but failed to record: ${data.message}`);
     }
+
   } catch (error) {
-    console.error('Error recording payment:', error);
+    console.error("Error recording payment:", error);
     alert(`Payment succeeded but recording failed: ${error.message}`);
   }
 };
+
 
   const createPayPalOrder = (data, actions) => {
     return actions.order.create({

@@ -18,56 +18,59 @@ const PropertyDetail = () => {
     fetchPropertyUnits();
   }, [id]);
 
-  const fetchPropertyDetail = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await apiCall(`/properties/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      console.log("response", response);
-      if (!response.ok) throw new Error("Failed to fetch property details");
+ const fetchPropertyDetail = async () => {
+  try {
+    const token = localStorage.getItem("token");
 
-      const data = await response.json();
-      console.log(data);
-      if (data.success) {
-        setProperty(data.data);
-      }
-    } catch (err) {
-      setError("Failed to load property details");
-      console.error("Error fetching property:", err);
+    const data = await apiCall(`/properties/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Property response:", data);
+
+    if (data.success) {
+      setProperty(data.data);
+    } else {
+      setError(data.message || "Failed to load property details");
     }
-  };
+
+  } catch (err) {
+    setError("Failed to load property details");
+    console.error("Error fetching property:", err);
+  }
+};
 
   const fetchPropertyUnits = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await apiCall(`/units?propertyId=${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  try {
+    const token = localStorage.getItem("token");
 
-      if (!response.ok) throw new Error("Failed to fetch units");
+    const data = await apiCall(`/units?propertyId=${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-      const data = await response.json();
-      if (data.success) {
-        setUnits(data.data || []);
-      }
-      setLoading(false);
-    } catch (err) {
-      setError("Failed to load property units");
-      console.error("Error fetching units:", err);
-      setLoading(false);
+    console.log("Units response:", data);
+
+    if (data.success) {
+      setUnits(data.data || []);
+    } else {
+      setError(data.message || "Failed to load units");
     }
-  };
+
+    setLoading(false);
+
+  } catch (err) {
+    setError("Failed to load units");
+    console.error("Error fetching units:", err);
+    setLoading(false);
+  }
+};
+
 
   const getPropertyImage = (imgPath) => {
     if (imgPath) {

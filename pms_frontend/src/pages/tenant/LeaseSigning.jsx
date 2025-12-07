@@ -33,87 +33,104 @@ const LeaseSigning = () => {
   }, [applicationId]);
 
   const fetchApplicationDetails = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await apiCall(`/applications/${applicationId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+  try {
+    const token = localStorage.getItem('token');
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setApplication(data.data);
-          // Set default dates
-          const today = new Date();
-          const oneYearLater = new Date(today);
-          oneYearLater.setFullYear(today.getFullYear() + 1);
-          
-          setFormData(prev => ({
-            ...prev,
-            startDate: today.toISOString().split('T')[0],
-            endDate: oneYearLater.toISOString().split('T')[0]
-          }));
+    const data = await apiCall(`/applications/${applicationId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-          // Fetch unit and property details
-          if (data.data.unitId) {
-            await fetchUnitDetails(data.data.unitId._id);
-          }
-        }
+    if (data.success) {
+      setApplication(data.data);
+
+      // --- Set default start/end dates ---
+      const today = new Date();
+      const oneYearLater = new Date(today);
+      oneYearLater.setFullYear(today.getFullYear() + 1);
+
+      setFormData((prev) => ({
+        ...prev,
+        startDate: today.toISOString().split("T")[0],
+        endDate: oneYearLater.toISOString().split("T")[0],
+      }));
+
+      // --- Fetch unit details ---
+      const unitId =
+        typeof data.data.unitId === "string"
+          ? data.data.unitId
+          : data.data.unitId?._id;
+
+      if (unitId) {
+        await fetchUnitDetails(unitId);
       }
-    } catch (err) {
-      console.error('Error fetching application:', err);
-      setError('Failed to load application details');
+    } else {
+      setError(data.message || "Failed to load application details");
     }
-  };
+  } catch (err) {
+    console.error("Error fetching application:", err);
+    setError("Failed to load application details");
+  }
+};
 
-  const fetchUnitDetails = async (unitId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await apiCall(`/units/${unitId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setUnit(data.data);
-          // Fetch property details
-          if (data.data.propertyId) {
-            await fetchPropertyDetails(data.data.propertyId);
-          }
-        }
+ const fetchUnitDetails = async (unitId) => {
+  try {
+    const token = localStorage.getItem('token');
+
+    const data = await apiCall(`/units/${unitId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (data.success) {
+      setUnit(data.data);
+
+      // Extract propertyId correctly (string OR populated object)
+      const propertyId =
+        typeof data.data.propertyId === "string"
+          ? data.data.propertyId
+          : data.data.propertyId?._id;
+
+      if (propertyId) {
+        await fetchPropertyDetails(propertyId);
       }
-    } catch (err) {
-      console.error('Error fetching unit:', err);
-    }
-  };
 
-  const fetchPropertyDetails = async (propertyId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await apiCall(`/properties/${propertyId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setProperty(data.data);
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching property:', err);
+    } else {
+      console.error("Failed to load unit:", data.message);
     }
-  };
+
+  } catch (err) {
+    console.error("Error fetching unit:", err);
+  }
+};
+
+ const fetchPropertyDetails = async (propertyId) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const data = await apiCall(`/properties/${propertyId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (data.success) {
+      setProperty(data.data);
+    } else {
+      console.error("Failed to load property:", data.message);
+    }
+
+  } catch (err) {
+    console.error("Error fetching property:", err);
+  }
+};
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -123,55 +140,54 @@ const LeaseSigning = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
+  setSuccess('');
 
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Please login to create lease');
-      }
-
-      const response = await apiCall(`/leases`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create lease');
-      }
-
-      if (data.success) {
-        setSuccess('Lease created successfully!');
-        // Redirect to payment page after 2 seconds
-        setTimeout(() => {
-          navigate('/payment', { 
-            state: { 
-              leaseId: data.data._id,
-              amount: data.data.rentAmount,
-              depositAmount: data.data.depositAmount
-            }
-          });
-        }, 2000);
-      } else {
-        throw new Error(data.message || 'Lease creation failed');
-      }
-    } catch (err) {
-      console.error('Lease creation error:', err);
-      setError(err.message || 'Failed to create lease. Please try again.');
-    } finally {
-      setLoading(false);
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Please login to create lease");
     }
-  };
+
+    const data = await apiCall(`/leases`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: formData, // apiCall already stringifies body
+    });
+
+    // apiCall already throws on error, so here data.success is guaranteed
+
+    if (data.success) {
+      setSuccess("Lease created successfully!");
+
+      // Redirect after 2 seconds
+      setTimeout(() => {
+        navigate("/payment", {
+          state: {
+            leaseId: data.data._id,
+            amount: data.data.rentAmount,
+            depositAmount: data.data.depositAmount,
+          },
+        });
+      }, 2000);
+    } else {
+      throw new Error(data.message || "Lease creation failed");
+    }
+
+  } catch (err) {
+    console.error("Lease creation error:", err);
+    setError(err.message || "Failed to create lease. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {

@@ -57,82 +57,74 @@ const Applications = () => {
   };
 
   const fetchApplications = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Please login to view your applications');
-        setLoading(false);
-        return;
-      }
-
-      const response = await apiCall(`/applications/my`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError('Authentication failed. Please login again.');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          return;
-        }
-        throw new Error(`Failed to fetch applications: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        const apps = data.data || [];
-        setApplications(apps);
-        setFilteredApplications(apps); // Initially show all
-      } else {
-        setError(data.message || 'Failed to load applications');
-      }
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Please login to view your applications');
       setLoading(false);
-    } catch (err) {
-      console.error('Error fetching applications:', err);
-      setError('Failed to load applications. Please try again later.');
-      setLoading(false);
-    }
-  };
-
-  const handleWithdrawApplication = async (applicationId) => {
-    if (!window.confirm('Are you sure you want to withdraw this application? This action cannot be undone.')) {
       return;
     }
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await apiCall(`/applications/my/${applicationId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to withdraw application');
+    const data = await apiCall(`/applications/my`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
+    });
 
-      const data = await response.json();
-      if (data.success) {
-        // Update the local state to reflect the withdrawal
-        setApplications(prev => prev.map(app => 
-          app._id === applicationId 
+    if (data.success) {
+      const apps = data.data || [];
+      setApplications(apps);
+      setFilteredApplications(apps);
+    } else {
+      setError(data.message || 'Failed to load applications');
+    }
+
+  } catch (err) {
+    console.error('Error fetching applications:', err);
+    setError('Failed to load applications. Please try again later.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  const handleWithdrawApplication = async (applicationId) => {
+  if (!window.confirm(
+    'Are you sure you want to withdraw this application? This action cannot be undone.'
+  )) {
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+
+    const data = await apiCall(`/applications/my/${applicationId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (data.success) {
+      setApplications(prev =>
+        prev.map(app =>
+          app._id === applicationId
             ? { ...app, status: 'REJECTED', withdrawn: true }
             : app
-        ));
-      } else {
-        throw new Error(data.message || 'Failed to withdraw application');
-      }
-    } catch (err) {
-      console.error('Error withdrawing application:', err);
-      alert('Failed to withdraw application. Please try again.');
+        )
+      );
+    } else {
+      throw new Error(data.message || 'Failed to withdraw application');
     }
-  };
+
+  } catch (err) {
+    console.error('Error withdrawing application:', err);
+    alert('Failed to withdraw application. Please try again.');
+  }
+};
+
 
   const getStatusBadge = (status, withdrawn = false) => {
     if (withdrawn) {

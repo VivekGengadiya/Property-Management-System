@@ -19,58 +19,48 @@ const UnitDetail = () => {
   }, [id]);
 
   const fetchUnitDetail = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      };
+  try {
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
 
-      // Fetch unit details
-      const unitResponse = await apiCall(`
-/units/${id}`, {
-        headers
-      });
-      
-      if (!unitResponse.ok) throw new Error('Failed to fetch unit details');
-      
-      const unitData = await unitResponse.json();
-      
-      if (unitData.success) {
-        setUnit(unitData.data);
-        
-        // Fetch property details if propertyId exists
-        if (unitData.data.propertyId) {
-          await fetchPropertyDetails(unitData.data.propertyId, headers);
-        }
-      } else {
-        setError(unitData.message || 'Failed to load unit details');
+    const unitData = await apiCall(`/units/${id}`, { headers });
+
+    if (unitData.success) {
+      setUnit(unitData.data);
+
+      if (unitData.data.propertyId) {
+        await fetchPropertyDetails(unitData.data.propertyId, headers);
       }
-    } catch (err) {
-      setError('Failed to load unit details. Please try again later.');
-      console.error('Error fetching unit:', err);
-    } finally {
-      setLoading(false);
+    } else {
+      setError(unitData.message || 'Failed to load unit details');
     }
-  };
+
+  } catch (err) {
+    console.error('Error fetching unit:', err);
+    setError('Failed to load unit details. Please try again later.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const fetchPropertyDetails = async (propertyId, headers) => {
-    try {
-      const propertyResponse = await apiCall(`
-/properties/${propertyId}`, {
-        headers
-      });
-      
-      if (propertyResponse.ok) {
-        const propertyData = await propertyResponse.json();
-        if (propertyData.success) {
-          setProperty(propertyData.data);
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching property:', err);
+  try {
+    const propertyData = await apiCall(`/properties/${propertyId}`, { headers });
+
+    if (propertyData.success) {
+      setProperty(propertyData.data);
+    } else {
+      console.error('Failed to load property details');
     }
-  };
+  } catch (err) {
+    console.error('Error fetching property:', err);
+  }
+};
+
 
   // Safe data access functions
   const getUnitImage = (imagePath, index = 0) => {

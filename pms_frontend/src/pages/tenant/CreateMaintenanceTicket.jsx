@@ -42,25 +42,27 @@ const CreateMaintenanceTicket = () => {
   }, []);
 
   const fetchActiveLeases = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await apiCall(`/leases/my-active`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+  try {
+    const token = localStorage.getItem('token');
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setLeases(data.data || []);
-        }
+    const data = await apiCall(`/leases/my-active`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
-    } catch (err) {
-      console.error('Error fetching leases:', err);
+    });
+
+    if (data.success) {
+      setLeases(data.data || []);
+    } else {
+      console.error("Failed to load active leases:", data.message);
     }
-  };
+
+  } catch (err) {
+    console.error('Error fetching leases:', err);
+  }
+};
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -79,51 +81,51 @@ const CreateMaintenanceTicket = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
+  e.preventDefault();
+  setLoading(true);
+  setError('');
+  setSuccess('');
 
-    try {
-      const token = localStorage.getItem('token');
-      const formDataToSend = new FormData();
-      
-      formDataToSend.append('unitId', formData.unitId);
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('category', formData.category);
-      formDataToSend.append('priority', formData.priority);
-      
-      // Append files
-      formData.attachments.forEach(file => {
-        formDataToSend.append('attachments', file);
-      });
+  try {
+    const token = localStorage.getItem('token');
+    const formDataToSend = new FormData();
 
-      const response = await apiCall(`/maintenance`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formDataToSend
-      });
+    formDataToSend.append('unitId', formData.unitId);
+    formDataToSend.append('title', formData.title);
+    formDataToSend.append('description', formData.description);
+    formDataToSend.append('category', formData.category);
+    formDataToSend.append('priority', formData.priority);
 
-      const result = await response.json();
+    formData.attachments.forEach((file) => {
+      formDataToSend.append('attachments', file);
+    });
 
-      if (result.success) {
-        setSuccess('Maintenance ticket created successfully!');
-        setTimeout(() => {
-          navigate('/tenant/maintenance-tickets');
-        }, 2000);
-      } else {
-        setError(result.message || 'Failed to create maintenance ticket');
-      }
-    } catch (err) {
-      console.error('Error creating maintenance ticket:', err);
-      setError('Failed to create maintenance ticket. Please try again.');
-    } finally {
-      setLoading(false);
+    // IMPORTANT: DO NOT SET Content-Type
+    const result = await apiCall(`/maintenance`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formDataToSend,
+    });
+
+    if (result.success) {
+      setSuccess('Maintenance ticket created successfully!');
+
+      setTimeout(() => {
+        navigate('/tenant/maintenance-tickets');
+      }, 2000);
+    } else {
+      setError(result.message || 'Failed to create maintenance ticket');
     }
-  };
+  } catch (err) {
+    console.error('Error creating maintenance ticket:', err);
+    setError('Failed to create maintenance ticket. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const getPriorityStyle = (priorityValue) => {
     const priority = priorities.find(p => p.value === priorityValue);

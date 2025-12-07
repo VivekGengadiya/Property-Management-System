@@ -1,6 +1,8 @@
-/* Modern RentEase Color Scheme & UI Styling */
+/* Modern  Color Scheme & UI Styling */
+
 
 :root {
+  
   /* Primary Colors */
   --primary-color: #5A7A6E; /* muted green-gray */
   --primary-light: #A8C4B5; /* soft pastel green */
@@ -1416,4 +1418,266 @@ body {
   font-size: 0.9rem;
   color: var(--text-muted);
   margin-top: 0.4rem;
+}
+
+
+
+/* Layout */
+.leases-wrapper {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding: 30px 0;
+}
+
+.leases-container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* Header */
+.leases-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.leases-header .header-icon {
+  font-size: 40px;
+  background: #e0ecff;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  margin: auto;
+}
+
+.leases-header h1 {
+  font-size: 32px;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.leases-header p {
+  color: #6b7280;
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.stat-card .green {
+  color: #16a34a;
+}
+
+.stat-card .yellow {
+  color: #d97706;
+}
+
+.stat-card .blue {
+  color: #2563eb;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Empty State */
+.empty-box {
+  background: white;
+  padding: 50px;
+  text-align: center;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.empty-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+}
+
+.empty-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+/* Lease cards */
+.lease-grid {
+  display: grid;
+  gap: 30px;
+}
+
+.lease-card {
+  background: white;
+  padding: 25px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.lease-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Status Icon Colors */
+.status-icon {
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 20px;
+}
+
+.status-pending {
+  background: #fef9c3;
+  border: 1px solid #fef08a;
+}
+
+.status-active {
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+}
+
+/* Details Grid */
+.lease-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.lease-details strong {
+  display: block;
+  color: #111827;
+  margin-top: 2px;
+}
+
+.separator {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 15px 0;
+}
+
+/* Badges */
+.badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.badge-status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-status-pending {
+  background: #fef9c3;
+  color: #92400e;
+}
+
+.badge-status-rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-default {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-default:hover {
+  background: #1d4ed8;
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+/* Alerts */
+.alert-warning {
+  background: #fef9c3;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #fef08a;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.alert-success {
+  background: #dcfce7;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #bbf7d0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Loader */
+.leases-loading {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.loader {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #d1d5db;
+  border-top: 4px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

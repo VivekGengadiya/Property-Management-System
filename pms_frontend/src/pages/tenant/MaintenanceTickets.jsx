@@ -14,46 +14,37 @@ const MaintenanceTickets = () => {
   }, []);
 
   const fetchMyTickets = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Please login to view your maintenance tickets');
-        setLoading(false);
-        return;
-      }
-
-      const response = await apiCall(`/maintenance/my`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError('Authentication failed. Please login again.');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          return;
-        }
-        throw new Error(`Failed to fetch tickets: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Tickets API response:', data);
-      
-      if (data.success) {
-        setTickets(data.data || []);
-      } else {
-        setError(data.message || 'Failed to load maintenance tickets');
-      }
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Please login to view your maintenance tickets");
       setLoading(false);
-    } catch (err) {
-      console.error('Error fetching maintenance tickets:', err);
-      setError('Failed to load maintenance tickets. Please try again later.');
-      setLoading(false);
+      return;
     }
-  };
+
+    const data = await apiCall(`/maintenance/my`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Tickets API response:", data);
+
+    if (data.success) {
+      setTickets(data.data || []);
+    } else {
+      setError(data.message || "Failed to load maintenance tickets");
+    }
+
+  } catch (err) {
+    console.error("Error fetching maintenance tickets:", err);
+    setError("Failed to load maintenance tickets. Please try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const getStatusColor = (status) => {
     switch (status) {
