@@ -20,7 +20,7 @@ const [paymentDone, setPaymentDone] = useState(false);
 
 
   // Fetch lease data from backend
-  const fetchLeaseData = async () => {
+ const fetchLeaseData = async () => {
   try {
     console.log("Starting to fetch lease data...");
     const token = localStorage.getItem("token");
@@ -32,65 +32,76 @@ const [paymentDone, setPaymentDone] = useState(false);
       return;
     }
 
-    let data;
-
-    // If we have a specific leaseId → fetch single lease
+    // ------------------------
+    // CASE 1: Specific leaseId
+    // ------------------------
     if (leaseId) {
       console.log("Fetching specific lease:", leaseId);
 
-      data = await apiCall(`/leases/${leaseId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("Lease API response:", data);
-
-      if (!data.success || !data.data) {
-        throw new Error(data.message || "Failed to load lease data");
+      let result;
+      try {
+        result = await apiCall(`/leases/${leaseId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (err) {
+        console.error("Error fetching specific lease:", err);
+        throw new Error("Failed to fetch lease");
       }
 
-      setLeaseData(data.data);
+      console.log("Lease API response:", result);
 
-      await fetchUnitAndPropertyDetails(data.data.unitId);
-      await fetchInvoiceForLease(data.data._id);
+      if (result.success && result.data) {
+        setLeaseData(result.data);
+        await fetchUnitAndPropertyDetails(result.data.unitId);
+        await fetchInvoiceForLease(result.data._id);
+      } else {
+        throw new Error(result.message || "Failed to load lease data");
+      }
+    }
 
-    } else {
-      // Fetch all user leases
+    // -----------------------------------------
+    // CASE 2: No leaseId → Fetch all leases
+    // -----------------------------------------
+    else {
       console.log("Fetching all user leases...");
 
-      data = await apiCall(`/leases/my`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("All leases API response:", data);
-
-      if (!data.success || !data.data) {
-        throw new Error(data.message || "Failed to load lease data");
+      let result;
+      try {
+        result = await apiCall(`/leases/my`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (err) {
+        console.error("Error fetching leases:", err);
+        throw new Error("Failed to fetch leases");
       }
 
-      const leases = data.data;
+      console.log("All leases API response:", result);
 
-      // Compare with applicationId from state
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to load lease data");
+      }
+
       const applicationId = location.state?.applicationId;
-
-      let targetLease;
+      let targetLease = null;
 
       if (applicationId) {
-        targetLease = leases.find(
+        targetLease = result.data.find(
           (lease) => lease.applicationId === applicationId
         );
       }
 
-      // If not found → fallback to first pending or first lease
       if (!targetLease) {
         targetLease =
-          leases.find((lease) => lease.status === "PENDING") ||
-          leases[0];
+          result.data.find((lease) => lease.status === "PENDING") ||
+          result.data[0];
       }
 
       if (!targetLease) {
@@ -113,66 +124,78 @@ const [paymentDone, setPaymentDone] = useState(false);
 
 
   // Fetch unit and property details
-  const fetchUnitAndPropertyDetails = async (unitId) => {
-    if (!unitId) {
-      console.log("No unitId provided");
-      return;
-    }
+ const fetchUnitAndPropertyDetails = async (unitId) => {
+  if (!unitId) {
+    console.log("No unitId provided");
+    return;
+  }
 
-    try {
-      console.log("Fetching unit details for:", unitId);
-      const token = localStorage.getItem("token");
-      const response = await apiCall(`/units/${unitId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+  // FIX: If unitId is an object, extract _id
+  const unitIdValue = typeof unitId === "string"
+    ? unitId
+    : unitId?._id;
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Unit API response:", result);
-        if (result.success) {
-          setUnitDetails(result.data);
+  if (!unitIdValue) {
+    console.error("Invalid unitId:", unitId);
+    return;
+  }
 
-          // Fetch property details if available
-          if (result.data.propertyId) {
-            await fetchPropertyDetails(result.data.propertyId);
-          }
-        }
-      } else {
-        console.log("Failed to fetch unit details");
+  try {
+    console.log("Fetching unit details for:", unitIdValue);
+    const token = localStorage.getItem("token");
+
+    const unit = await apiCall(`/units/${unitIdValue}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Unit API response:", unit);
+
+    if (unit.success) {
+      setUnitDetails(unit.data);
+
+      const propertyRef = unit.data.propertyId;
+
+      // FIX: propertyId may also be object → extract _id
+      const propertyIdValue =
+        typeof propertyRef === "string" ? propertyRef : propertyRef?._id;
+
+      if (propertyIdValue) {
+        await fetchPropertyDetails(propertyIdValue);
       }
-    } catch (error) {
-      console.error("Error fetching unit details:", error);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching unit details:", error);
+  }
+};
 
   // Fetch property details
-  const fetchPropertyDetails = async (propertyId) => {
-    try {
-      console.log("Fetching property details for:", propertyId);
-      const token = localStorage.getItem("token");
-      const response = await apiCall(`/properties/${propertyId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+ const fetchPropertyDetails = async (propertyId) => {
+  try {
+    console.log("Fetching property details for:", propertyId);
+    const token = localStorage.getItem("token");
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Property API response:", result);
-        if (result.success) {
-          setPropertyDetails(result.data);
-        }
-      } else {
-        console.log("Failed to fetch property details");
-      }
-    } catch (error) {
-      console.error("Error fetching property details:", error);
+    const result = await apiCall(`/properties/${propertyId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Property API response:", result);
+
+    if (result.success) {
+      setPropertyDetails(result.data);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching property details:", error);
+  }
+};
+
 
   useEffect(() => {
     console.log("LeasePreview mounted with:", { leaseId, locationState: location.state });
@@ -180,84 +203,72 @@ const [paymentDone, setPaymentDone] = useState(false);
   }, [leaseId, location.state]);
 
   // Handle lease acceptance
-  const handleAcceptLease = async () => {
-    if (!leaseData) return;
-    
-    setSigning(true);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await apiCall(`/leases/${leaseData._id}/respond`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ response: "ACCEPT" }),
-      });
+const handleAcceptLease = async () => {
+  if (!leaseData) return;
 
-      const result = await response.json();
+  setSigning(true);
+  try {
+    const token = localStorage.getItem("token");
 
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to accept lease");
-      }
+    const result = await apiCall(`/leases/${leaseData._id}/respond`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: { response: "ACCEPT" },
+    });
 
-      if (result.success) {
-        alert("Lease accepted successfully!");
-        // Update local state
-        setLeaseData((prev) => ({
-          ...prev,
-          status: "ACTIVE",
-        }));
-      } else {
-        throw new Error(result.message || "Lease acceptance failed");
-      }
-    } catch (error) {
-      console.error("Error accepting lease:", error);
-      alert(error.message || "Failed to accept lease");
-    } finally {
-      setSigning(false);
+    if (result.success) {
+      alert("Lease accepted successfully!");
+      setLeaseData((prev) => ({ ...prev, status: "ACTIVE" }));
+    } else {
+      throw new Error(result.message || "Lease acceptance failed");
     }
-  };
+  } catch (error) {
+    console.error("Error accepting lease:", error);
+    alert(error.message || "Failed to accept lease");
+  } finally {
+    setSigning(false);
+  }
+};
+
 
   // Handle lease rejection
-  const handleRejectLease = async () => {
-    if (!leaseData) return;
-    
-    if (!window.confirm("Are you sure you want to reject this lease agreement? This action cannot be undone.")) {
-      return;
+ const handleRejectLease = async () => {
+  if (!leaseData) return;
+
+  if (!window.confirm("Are you sure you want to reject this lease agreement?")) {
+    return;
+  }
+
+  setSigning(true);
+  try {
+    const token = localStorage.getItem("token");
+
+    const result = await apiCall(`/leases/${leaseData._id}/respond`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: { response: "REJECT" },
+    });
+
+    if (result.success) {
+      alert("Lease rejected");
+      navigate("/tenant/dashboard");
+    } else {
+      throw new Error(result.message || "Lease rejection failed");
     }
+  } catch (error) {
+    console.error("Error rejecting lease:", error);
+    alert(error.message || "Failed to reject lease");
+  } finally {
+    setSigning(false);
+  }
+};
 
-    setSigning(true);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await apiCall(`/leases/${leaseData._id}/respond`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ response: "REJECT" }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to reject lease");
-      }
-
-      if (result.success) {
-        alert("Lease rejected");
-        navigate("/tenant/dashboard");
-      } else {
-        throw new Error(result.message || "Lease rejection failed");
-      }
-    } catch (error) {
-      console.error("Error rejecting lease:", error);
-      alert(error.message || "Failed to reject lease");
-    } finally {
-      setSigning(false);
-    }
-  };
 
   // Handle payment
   const handleMakePayment = async () => {
@@ -277,23 +288,23 @@ const [paymentDone, setPaymentDone] = useState(false);
     }
   };
 
-  const fetchInvoiceForLease = async (leaseId) => {
+const fetchInvoiceForLease = async (leaseId) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await apiCall(`/invoices/lease/${leaseId}`, {
+
+    const result = await apiCall(`/invoices/lease/${leaseId}`, {
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
 
-    const result = await response.json();
-
-    if (response.ok && result.success) {
+    if (result.success) {
       setInvoiceData(result.data.invoice);
       setPayments(result.data.payments);
 
-      if (result.data.payments && result.data.payments.length > 0) {
+      if (result.data.payments?.length > 0) {
         setPaymentDone(true);
       }
     }
@@ -301,6 +312,7 @@ const [paymentDone, setPaymentDone] = useState(false);
     console.error("Error fetching invoice:", error);
   }
 };
+
 
   // Handle PDF download
   const handleDownloadLease = async () => {
@@ -313,7 +325,8 @@ const [paymentDone, setPaymentDone] = useState(false);
       return;
     }
 
-    const res = await apiCall(`/leases/${leaseData._id}/pdf`,
+    const res = await fetch(
+      `http://localhost:9000/api/leases/${leaseData._id}/pdf`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -344,7 +357,8 @@ const downloadInvoice = async (invoiceId) => {
   try {
     const token = localStorage.getItem("token");
 
-    const res = await apiCall(`/invoices/${invoiceId}/pdf`,
+    const res = await fetch(
+      `http://localhost:9000/api/invoices/${invoiceId}/pdf`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
