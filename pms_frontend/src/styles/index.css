@@ -1681,3 +1681,143 @@ body {
     transform: rotate(360deg);
   }
 }
+.logo-with-icon {
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo-img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+
+/* Hide hamburger on desktop */
+.hamburger {
+  display: none;
+}
+
+.nav-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-toggle {
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 180px;
+  background: white;
+  border-radius: 6px;
+  padding: 10px 0;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 999;
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 10px 16px;
+  text-decoration: none;
+  color: #333;
+}
+
+.dropdown-item:hover {
+  background: #f5f5f5;
+}
+/* MOBILE MENU */
+@media (max-width: 768px) {
+
+  .navbar-links {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    background: white; 
+    padding: 1rem 0;
+    border-radius: 10px;
+  }
+
+  .navbar-links.open {
+    display: flex;
+  }
+
+  .nav-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #ececec;
+    width: 100%;
+  }
+
+  .nav-dropdown {
+    width: 100%;
+  }
+
+  .dropdown-toggle {
+    padding: 0.75rem 1rem;
+    display: block;
+    width: 100%;
+  }
+
+  .nav-logo-img {
+    width: 26px;
+    height: 26px;
+  }
+  /* Mobile dropdown menu goes inside the flow */
+  .dropdown-menu {
+    position: relative !important;
+    box-shadow: none;
+    padding-left: 1rem;
+    background: #fafafa;
+    display: none;
+  }
+
+  .dropdown-menu.show {
+    display: block;
+  }
+
+  .dropdown-item {
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+  }
+  /* Base hamburger styles */
+.hamburger {
+  font-size: 1.8rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #000;
+  padding: 6px 10px;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 0.25s ease-in-out;
+}
+
+/* Hover effect */
+.hamburger:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Active (close) state */
+.hamburger.active {
+  transform: rotate(0deg) scale(1.05);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Smooth animation on icon change */
+.hamburger span,
+.hamburger {
+  transition: 0.25s ease;
+}
+
+}

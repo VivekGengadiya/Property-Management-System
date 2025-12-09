@@ -581,7 +581,7 @@ const UnitDetail = () => {
             {[
               {icon: '🛏️', value: unit.bedrooms || 'N/A', label: 'Bedrooms'},
               {icon: '🚿', value: unit.bathrooms || 'N/A', label: 'Bathrooms'},
-              {icon: '📏', value: unit.sqft || 'N/A', label: 'Square Feet'},
+              // {icon: '📏', value: unit.sqft || 'N/A', label: 'Square Feet'},
               {icon: '🏢', value: unit.unitNumber, label: 'Unit Number'}
             ].map((spec, index) => (
               <div key={index} className="spec-card" style={{
