@@ -3,6 +3,7 @@ import axios from "axios";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
+import { apiCall } from "../../services/api";
 
 const StaffTicketDetail = () => {
   const { id } = useParams();
@@ -18,38 +19,60 @@ const StaffTicketDetail = () => {
   const isUpdateMode = location.search.includes("update=true");
 
   const loadTicket = async () => {
-    try {
-      const res = await axios.get(`/api/maintenance/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  try {
+    console.log("Fetching ticket details...");
 
-      setTicket(res.data.data);
-      setStatus(res.data.data.status);
-    } catch (error) {
-      console.error("Error loading ticket:", error);
+    const res = await apiCall(`/maintenance/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    console.log("Ticket API Response:", res);
+
+    if (!res.success) {
+      throw new Error(res.message || "Failed to load ticket");
     }
-  };
+
+    setTicket(res.data);
+    setStatus(res.data.status);
+
+  } catch (error) {
+    console.error("Error loading ticket:", error);
+  }
+};
+
 
   useEffect(() => {
     loadTicket();
   }, [id]);
 
   const handleStatusUpdate = async () => {
-    try {
-      await axios.put(
-        `/api/maintenance/${id}/status`,
-        { status, note },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  try {
+    const res = await apiCall(`/maintenance/${id}/status`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: { status, note }
+    });
 
-      loadTicket();
-      alert("Status updated!");
-      navigate(`/staff/ticket/${id}`);
-    } catch (error) {
-      console.error("Status update error:", error);
-      alert("Failed to update status");
+    if (!res.success) {
+      throw new Error(res.message || "Failed to update status");
     }
-  };
+
+    await loadTicket();
+    alert("Status updated!");
+    navigate(`/staff/ticket/${id}`);
+
+  } catch (error) {
+    console.error("Status update error:", error);
+    alert(error.message || "Failed to update status");
+  }
+};
 
   if (!ticket)
     return (
@@ -271,7 +294,7 @@ const StaffTicketDetail = () => {
         </div>
 
         {/* Gradient Animation */}
-        <style jsx>{`
+        <style >{`
           @keyframes gradientShift {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
