@@ -83,7 +83,7 @@ const Navbar = () => {
         <div className="navbar-content">
 <Link to="/" className="navbar-logo logo-with-icon">
   <img
-    src="../src/assets/NavLogo.png"     
+    src="/images/NavLogo.png"     
     alt="Vasudha Logo"
     className="nav-logo-img"
   />
