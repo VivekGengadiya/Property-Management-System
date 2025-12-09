@@ -315,9 +315,10 @@ const fetchInvoiceForLease = async (leaseId) => {
 
 
   // Handle PDF download
-  const handleDownloadLease = async () => {
-    try {
+ const handleDownloadLease = async () => {
+  try {
     if (!leaseData?._id) return;
+
     const token = localStorage.getItem("token");
     if (!token) {
       alert("Please login again to download the lease");
@@ -325,21 +326,22 @@ const fetchInvoiceForLease = async (leaseId) => {
       return;
     }
 
-    const res = await fetch(
-      `http://localhost:9000/api/leases/${leaseData._id}/pdf`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    // Generate headers using apiCall config (no JSON body)
+    const headers = {
+      Authorization: `Bearer ${token}`
+    };
 
-    if (!res.ok) {
-      throw new Error("Failed to download lease PDF");
-    }
+    // Use fetch ONLY for blob (apiCall can't handle blob)
+    const res = await fetch(`/api/leases/${leaseData._id}/pdf`, {
+      method: "GET",
+      headers
+    });
+
+    if (!res.ok) throw new Error("Failed to download lease PDF");
 
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
+
     const a = document.createElement("a");
     a.href = url;
     a.download = `lease_${leaseData._id.slice(-8).toUpperCase()}.pdf`;
@@ -347,24 +349,26 @@ const fetchInvoiceForLease = async (leaseId) => {
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
+
   } catch (error) {
     console.error("Error downloading lease:", error);
     alert(error.message || "Failed to download lease PDF");
   }
-  };
+};
+
   
 const downloadInvoice = async (invoiceId) => {
   try {
     const token = localStorage.getItem("token");
 
-    const res = await fetch(
-      `http://localhost:9000/api/invoices/${invoiceId}/pdf`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const headers = {
+      Authorization: `Bearer ${token}`
+    };
+
+    const res = await fetch(`/api/invoices/${invoiceId}/pdf`, {
+      method: "GET",
+      headers
+    });
 
     if (!res.ok) throw new Error("Failed to download invoice PDF");
 
@@ -377,11 +381,13 @@ const downloadInvoice = async (invoiceId) => {
     a.click();
 
     window.URL.revokeObjectURL(url);
+
   } catch (err) {
-    console.error(err);
+    console.error("Invoice download error:", err);
     alert("PDF download failed");
   }
 };
+
 
   // Format currency
   const formatCurrency = (amount) => {
@@ -930,7 +936,7 @@ const downloadInvoice = async (invoiceId) => {
                   color: 'var(--text-primary)',
                   marginBottom: '0.25rem'
                 }}>
-                  {unitDetails?.parkingSpots || "N/A"}
+                  {unitDetails?.parkingSpots || "Available"}
                 </div>
                 <div style={{
                   color: 'var(--text-secondary)',

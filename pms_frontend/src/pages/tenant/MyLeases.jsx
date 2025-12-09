@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Navbar from "../../components/common/Navbar.jsx";
+import Footer from "../../components/common/Footer.jsx";
 import "../../styles/index.css";
 import { apiCall } from "../../services/api.js";
 
@@ -90,6 +92,7 @@ const MyLeases = () => {
 
   return (
     <div className="leases-wrapper">
+      <Navbar/>
       <div className="leases-container">
         <div className="leases-header">
           <div className="header-icon">📄</div>

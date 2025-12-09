@@ -383,22 +383,94 @@ const Footer = () => {
         </div>
       </div>
 
-      <style >{`
-        @keyframes gradientShift {
-          0%,
-          100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
+      <style>{`
+  /* Gradient Animation */
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
 
-        .logo-text {
-          animation: gradientShift 5s ease infinite;
-          background-size: 200% 200%;
-        }
-      `}</style>
+  .logo-text {
+    animation: gradientShift 5s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  /* MOBILE RESPONSIVE FOOTER */
+  @media (max-width: 768px) {
+    .footer-main {
+      grid-template-columns: 1fr !important;
+      gap: 2rem !important;
+      padding: 2rem 0 1.5rem !important;
+    }
+
+    .footer-links-grid {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 1.5rem !important;
+    }
+
+    .premium-footer {
+      padding: 0 1rem;
+    }
+
+    .footer-brand p {
+      font-size: 1rem !important;
+      margin-bottom: 1.2rem !important;
+    }
+
+    .social-links a {
+      width: 36px !important;
+      height: 36px !important;
+    }
+
+    .footer-title {
+      font-size: 1rem !important;
+      margin-bottom: 1rem !important;
+    }
+
+    .footer-link {
+      font-size: 0.9rem !important;
+    }
+
+    .footer-bottom-content {
+      flex-direction: column !important;
+      text-align: center !important;
+      gap: 0.8rem !important;
+    }
+
+    .footer-bottom-links {
+      justify-content: center !important;
+    }
+
+    .footer-bottom {
+      padding: 1.5rem 0 1rem !important;
+    }
+
+    .copyright {
+      font-size: 0.85rem !important;
+    }
+  }
+
+  /* VERY SMALL SCREENS (≤480px) */
+  @media (max-width: 480px) {
+    .footer-links-grid {
+      grid-template-columns: 1fr !important;
+      text-align: center !important;
+    }
+
+    .footer-title {
+      font-size: 0.95rem !important;
+    }
+
+    .footer-link {
+      font-size: 0.85rem !important;
+    }
+
+    .logo-text {
+      font-size: 1.8rem !important;
+    }
+  }
+`}</style>
+
     </footer>
   );
 };
