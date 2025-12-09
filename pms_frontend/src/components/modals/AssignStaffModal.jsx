@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import { usersAPI } from "../../services/api";
 
 const modalOverlay = {
@@ -46,24 +46,35 @@ export default function AssignStaffModal({ ticket, token, onClose }) {
     loadStaff();
   }, [token]);
 
-  const assignStaff = async () => {
-    if (!selectedStaff) {
-      alert("Please select a staff member");
-      return;
-    }
+ const assignStaff = async () => {
+  if (!selectedStaff) {
+    alert("Please select a staff member");
+    return;
+  }
 
-    try {
-      await axios.put(
-        `/api/maintenance/${ticket._id}/assign`,
-        { assignedTo: selectedStaff },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  try {
+    const response = await apiCall(`/maintenance/${ticket._id}/assign`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: { assignedTo: selectedStaff }
+    });
 
+    if (response.success) {
       onClose();
-    } catch (error) {
-      console.error("Assign staff error:", error);
+    } else {
+      console.error("Error assigning staff:", response.message);
+      alert(response.message || "Failed to assign staff");
     }
-  };
+
+  } catch (error) {
+    console.error("Assign staff error:", error);
+    alert("Error assigning staff");
+  }
+};
+
 
   return (
     <div style={modalOverlay} onClick={onClose}>

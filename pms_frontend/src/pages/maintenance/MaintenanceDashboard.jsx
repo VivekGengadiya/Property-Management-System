@@ -4,6 +4,8 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import { useNavigate } from "react-router-dom";
 
+import { apiCall } from "../../services/api";
+
 const MaintenanceDashboard = () => {
   const [stats, setStats] = useState(null);
   const [recent, setRecent] = useState([]);
@@ -11,18 +13,28 @@ const MaintenanceDashboard = () => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate(); 
 
-  const loadStats = async () => {
-    try {
-      const res = await axios.get("/api/maintenance/dashboard/staff", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+ const loadStats = async () => {
+  try {
 
-      setStats(res.data.data.stats);
-      setRecent(res.data.data.recentActivities);
-    } catch (e) {
-      console.log("Error loading staff dashboard", e);
+    const res = await apiCall(`/maintenance/dashboard/staff`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!res.success) {
+      throw new Error(res.message || "Failed to load dashboard stats");
     }
-  };
+
+    setStats(res.data?.stats || {});
+    setRecent(res.data?.recentActivities || []);
+
+  } catch (e) {
+    console.error("Error loading staff dashboard", e);
+  }
+};
 
   useEffect(() => {
     loadStats();
@@ -42,11 +54,11 @@ const MaintenanceDashboard = () => {
 
   const cards = [
     { label: "Total Assigned", value: stats.totalAssigned, icon: "🧰", query: "" },
-    { label: "Open", value: stats.open, icon: "📌", query: "?status=OPEN" },
+    // { label: "Open", value: stats.open, icon: "📌", query: "?status=OPEN" },
     { label: "In Progress", value: stats.inProgress, icon: "🔧", query: "?status=IN_PROGRESS" },
     { label: "On Hold", value: stats.onHold, icon: "⏸️", query: "?status=ON_HOLD" },
     { label: "Resolved", value: stats.resolved, icon: "✅", query: "?status=RESOLVED" },
-    { label: "Today’s Tasks", value: stats.todayTasks, icon: "📅", query: "?today=true" },
+    // { label: "Today’s Tasks", value: stats.todayTasks, icon: "📅", query: "?today=true" },
     { label: "Overdue", value: stats.overdue, icon: "⏰", query: "?overdue=true" }
   ];
 
@@ -152,7 +164,7 @@ const MaintenanceDashboard = () => {
           ))}
         </div>
 
-        <style jsx>{`
+        <style >{`
           @keyframes gradientShift {
             0%, 100% {
               background-position: 0% 50%;
