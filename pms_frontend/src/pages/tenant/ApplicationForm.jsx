@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../../components/common/Navbar.jsx';
 import Footer from '../../components/common/Footer.jsx';
-import { apiCall } from "../../services/api";
+import { apiCall } from '../../services/api.js';
 
 const ApplicationForm = () => {
   const location = useLocation();
@@ -40,41 +40,36 @@ const fetchPropertyAndUnitDetails = async () => {
     const token = localStorage.getItem('token');
     const headers = {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(token && { 'Authorization': `Bearer ${token}` })
     };
 
     // Fetch unit details
     if (unitId) {
-      const unitData = await apiCall(`/units/${unitId}`, { headers });
+      const unitResponse = await apiCall(`/units/${unitId}`, { headers });
 
-      if (unitData.success) {
+      if (unitResponse.success) {
+        const unitData = unitResponse;
         setUnit(unitData.data);
 
-        // Extract propertyId safely
+        // --- FIX: Ensure correct propertyId extraction ---
         const propertyRef = unitData.data.propertyId;
-        const propertyIdValue =
-          typeof propertyRef === "string"
-            ? propertyRef
-            : propertyRef?._id;
 
-        // Fetch property details
+        const propertyIdValue = typeof propertyRef === "string"
+          ? propertyRef
+          : propertyRef?._id; // If populated object → take _id
+
         if (propertyIdValue) {
-          const propertyData = await apiCall(`/properties/${propertyIdValue}`, {
-            headers,
-          });
+          const propertyResponse = await apiCall(`/properties/${propertyIdValue}`, { headers });
 
-          if (propertyData.success) {
+          if (propertyResponse.success) {
+            const propertyData = propertyResponse;
             setProperty(propertyData.data);
-          } else {
-            console.error("Failed to load property details");
           }
         }
-      } else {
-        console.error("Failed to load unit details:", unitData.message);
       }
     }
   } catch (err) {
-    console.error("Error fetching details:", err);
+    console.error('Error fetching details:', err);
   }
 };
 
@@ -238,7 +233,7 @@ const fetchPropertyAndUnitDetails = async () => {
         submitData.append('docs', file);
       });
 
-      const response = await apiCall(`/applications`, {
+      const response = await fetch('http://localhost:9000/api/applications', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

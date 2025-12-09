@@ -47,19 +47,36 @@ const UnitDetail = () => {
 };
 
 
-  const fetchPropertyDetails = async (propertyId, headers) => {
+ const fetchPropertyDetails = async (propertyId) => {
   try {
-    const propertyData = await apiCall(`/properties/${propertyId}`, { headers });
+    const token = localStorage.getItem('token');
 
-    if (propertyData.success) {
-      setProperty(propertyData.data);
-    } else {
-      console.error('Failed to load property details');
+    // Normalize propertyId (fix for object vs string)
+    const normalizedId =
+      typeof propertyId === "string"
+        ? propertyId
+        : propertyId?._id || propertyId?.$oid;
+
+    if (!normalizedId) {
+      console.error("❌ Invalid propertyId:", propertyId);
+      return;
+    }
+
+    const response = await apiCall(`/properties/${normalizedId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (response.success) {
+      setProperty(response.data);
     }
   } catch (err) {
-    console.error('Error fetching property:', err);
+    console.error("Error fetching property:", err);
   }
 };
+
 
 
   // Safe data access functions
