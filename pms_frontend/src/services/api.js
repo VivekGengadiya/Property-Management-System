@@ -13,20 +13,21 @@ console.log('🔐 API Call Debug:', {
     tokenLength: token?.length,
     tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token'
   });
-
+const isFormData = options.body instanceof FormData;
   const config = {
     headers: {
-      'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...(!isFormData && { 'Content-Type': 'application/json' }), 
       ...options.headers,
     },
     ...options,
   };
 
-  // Add body to config if it exists and method is not GET/HEAD
-  if (options.body && !['GET', 'HEAD'].includes(options.method?.toUpperCase())) {
-    config.body = JSON.stringify(options.body);
-  }
+
+if (options.body && !['GET', 'HEAD'].includes(options.method?.toUpperCase())) {
+  config.body = isFormData ? options.body : JSON.stringify(options.body);
+}
+
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);

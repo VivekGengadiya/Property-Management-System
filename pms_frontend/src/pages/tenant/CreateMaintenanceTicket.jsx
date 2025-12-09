@@ -45,17 +45,17 @@ const CreateMaintenanceTicket = () => {
   try {
     const token = localStorage.getItem('token');
 
-    const data = await apiCall(`/leases/my-active`, {
+    const response = await apiCall(`/leases/my-active`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
 
-    if (data.success) {
-      setLeases(data.data || []);
-    } else {
-      console.error("Failed to load active leases:", data.message);
+    // apiCall already returns parsed JSON,
+    // so no need for response.json()
+    if (response.success) {
+      setLeases(response.data || []);
     }
 
   } catch (err) {
@@ -96,22 +96,26 @@ const CreateMaintenanceTicket = () => {
     formDataToSend.append('category', formData.category);
     formDataToSend.append('priority', formData.priority);
 
-    formData.attachments.forEach((file) => {
+    // Append files
+    formData.attachments.forEach(file => {
       formDataToSend.append('attachments', file);
     });
 
-    // IMPORTANT: DO NOT SET Content-Type
-    const result = await apiCall(`/maintenance`, {
+    // 🔥 Converted from fetch → apiCall
+    const response = await apiCall(`/maintenance`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`
+        // ❗ DO NOT SET Content-Type (FormData sets it automatically)
       },
-      body: formDataToSend,
+      body: formDataToSend
     });
+
+    // apiCall already returns JSON → so response = JSON
+    const result = response;
 
     if (result.success) {
       setSuccess('Maintenance ticket created successfully!');
-
       setTimeout(() => {
         navigate('/tenant/maintenance-tickets');
       }, 2000);
