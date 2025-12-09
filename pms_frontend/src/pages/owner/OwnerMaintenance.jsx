@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import TicketDetailModal from "../../components/modals/TicketDetailModal";
 import AssignStaffModal from "../../components/modals/AssignStaffModal";
+import { apiCall } from "../../services/api";
 
 const OwnerMaintenance = () => {
   const [tickets, setTickets] = useState([]);
@@ -10,35 +11,52 @@ const OwnerMaintenance = () => {
 
   const token = localStorage.getItem("token");
 
-  // Fetch all tickets for landlord
   const loadTickets = async () => {
-    try {
-      const res = await axios.get("/api/maintenance/landlord", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTickets(res.data.data || []);
-    } catch (error) {
-      console.error("Error fetching maintenance tickets:", error);
+  try {
+    const response = await apiCall(`/maintenance/landlord`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // apiCall returns parsed JSON, not axios response
+    if (response.success) {
+      setTickets(response.data || []);
+    } else {
+      console.error("API Error:", response.message);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching maintenance tickets:", error);
+  }
+};
 
-  useEffect(() => {
-    loadTickets();
-  }, []);
+useEffect(() => {
+  loadTickets();
+}, []);
 
-  // Close ticket
-  const closeTicket = async (id) => {
-    try {
-      await axios.put(
-        `/api/maintenance/${id}/close`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+// Close ticket
+const closeTicket = async (id) => {
+  try {
+    const response = await apiCall(`/maintenance/${id}/close`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: {} // same as axios {}
+    });
+
+    if (response.success) {
       loadTickets();
-    } catch (error) {
-      console.error("Close ticket error:", error);
+    } else {
+      console.error("Close ticket API error:", response.message);
     }
-  };
+  } catch (error) {
+    console.error("Close ticket error:", error);
+  }
+};
+
 
   return (
     <div style={{ padding: "2rem" }}>
